@@ -1,0 +1,47 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Getting Started Extension's Popup</title>
+    <style>
+      body {
+        min-width: 357px;
+        overflow-x: hidden;
+      }
+
+      img {
+        margin: 5px;
+        border: 2px solid black;
+        vertical-align: middle;
+        width: 75px;
+        height: 75px;
+      }
+
+      #pop-up {
+/*        display: none;
+*/        position: absolute;
+        width: 280px;
+        padding: 10px;
+        background: #eeeeee;
+        color: #000000;
+        border: 1px solid #1a1a1a;
+        font-size: 90%;
+      }
+    </style>
+
+    <img src="icon.png" id="tester">
+
+    <div id="pop-up">
+      <h3>Pop-up div Successfully Displayed</h3>
+      <p>
+        This div only appears when the trigger link is hovered over.
+        Otherwise it is hidden from view.
+      </p>
+    </div>
+  
+    <script type="text/javascript" src="jquery.js"></script>
+    <script src="popup.js"></script>
+  </head>
+  <body>
+  </body>
+</html>
+
