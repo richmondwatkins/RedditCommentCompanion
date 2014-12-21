@@ -1,13 +1,10 @@
 (function(){
-var converter = new Markdown.Converter();
 
 var links = $('a.comments').toArray();
 
 links.forEach(function(l,i){
-  console.log(l);
-  var moveLeft = 20;
-  var moveDown = 10;
   var jL = $(l);
+
   $(l).hover(function(e) {
     console.log('hover');
 
@@ -19,24 +16,37 @@ links.forEach(function(l,i){
 
     if ($('#pop-up').length <= 0) {
       jL.parent().append(popUp);
+    }else{
+      topComments = [];
+      $('#pop-up').remove();
     }
 
-  }, function() {
-    $('#pop-up').remove();
+  }, function(m) {
+    console.log(m);
+    // $('#pop-up').remove();
   });
 });
 
+var topComments = [];
 
 function retrieveComments (url){
     $.ajax(url +'.json').done(function(data){
     var results = data[1].data.children;
 
-    var topComments = [];
     for (var i = 0; i <= results.length; i++) {
       if (i == 10) {
         break;
       }else{
-        topComments.push(results[i].data.body);
+        // console.log(results[i].data);
+        var indivComment = results[i].data;
+
+        var commentInfo = {
+          author:  indivComment.author,
+          html: indivComment.body,
+          gilded: indivComment.gilded,
+          votes: indivComment.ups
+        };
+        topComments.push(commentInfo);
       }
     }
     formatComments(topComments);
@@ -44,14 +54,21 @@ function retrieveComments (url){
 }
 
 function formatComments(commentsArray){
+  var converter = new Markdown.Converter();
+
     commentsArray.forEach(function(c, i){
-      var convertedMarkdown = converter.makeHtml(c);
+      var commentDiv = $('<div #comment-container></div>');
+      var convertedMarkdown = converter.makeHtml(c.html);
       convertedMarkdown = convertedMarkdown.replace('&gt;', '|');
-      console.log(convertedMarkdown);
-      var jTemp = $('<p>'+convertedMarkdown+'</p>');
-      $('#pop-up').append(jTemp);
+
+      commentDiv.append($('<a id="author" href="www.reddit.com/u/'+c.author+'">' + c.author + '   </a><span>'+c.votes+' points</span>'));
+      commentDiv.append($('<p>'+convertedMarkdown+'</p>'));
+
+      // console.log(convertedMarkdown);
+      $('#pop-up').append(commentDiv);
     });
 }
+
 
 
 })();
