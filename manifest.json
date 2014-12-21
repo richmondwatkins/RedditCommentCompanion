@@ -4,6 +4,7 @@
   "name": "One-click Kittens",
   "description": "This extension demonstrates a browser action with kittens.",
   "version": "1.0",
+   "web_accessible_resources": ["loadingGif.gif"],
 
   "permissions": [
     "https://secure.flickr.com/"
@@ -12,9 +13,13 @@
   "content_scripts": [
     {
       "matches": ["http://www.reddit.com/*"],
-      "js": ["jquery.js","Markdown.Converter.js", "Markdown.Sanitizer.js", "Markdown.Editor.js", "popup.js"],
+      "js": ["jquery.js","Markdown.Converter.js", "showdown.js", "loader.js", "Markdown.Sanitizer.js", "Markdown.Editor.js", "popup.js"],
       "css": ["style.css"]
     }
+  ],
+
+  "web_accessible_resources": [
+    "smallLoader.gif"
   ],
 
   "browser_action": {

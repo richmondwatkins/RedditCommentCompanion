@@ -2,8 +2,33 @@
 #author {
   color: #369;
   font-weight: bold;
+  width: 200px;
+  padding-right: 10px;
 }
 
-#comment-container {
-  word-wrap: break-word;
+.votes {
+  color: #888;
+}
+
+p {
+    word-break: normal;
+    white-space: normal;
+}
+
+.comment {
+  margin-top: 10px;
+  margin-bottom: 10px;
+}
+
+.comment-text > ul {
+  list-style-type: disc;
+}
+
+.comment-text > ul > li{
+  display: list-item !important;
+}
+
+#loader {
+  width: 20px;
+  height: 20px;
 }
