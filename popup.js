@@ -3,10 +3,7 @@
 var topComments = [];
 var currenPostID;
 var isPopUpDisplay = false;
-var mouseInPopUp = false;
-var currentPostCSS;
-var timer; 
-console.log('working');
+var currentPost;
 
 setUpHoverEvents();
 
@@ -16,35 +13,24 @@ function setUpHoverEvents () {
   links.forEach(function(l,i){
     var jL = $(l);
 
-    $(l).hover(function(e) {
-  
-      var imageURL = chrome.extension.getURL("smallLoader.gif");
-      var loadingIMG = $('<img id="loader" src="'+imageURL+'">')
+    $(jL).hover(function(e) {
+       
+        currentPost = jL.parent().parent().parent().parent();
+        currentPost = $(currentPost);
 
-       if ($('#loader').length <= 0) {
-          jL.append(loadingIMG);
-       }
-
-        currentPostCSS = jL.parent().parent().parent().parent();
-        currentPostCSS = $(currentPostCSS);
-
-        currentPostCSS.mouseleave(function(){
+        currentPost.mouseleave(function(){
           removePopUpFromView();
         });
       
         if ($('#pop-up').length <= 0) {
 
-          if (isPopUpDisplay == false) {
             retrieveComments(l.href, jL); 
-          }
 
         }else{
           removePopUpFromView();
         }
     }, function(m) {
-      // if (!mouseInPopUp) {
-      //   $('#pop-up').remove();
-      // }
+      //mouse leave
     });
   });
 }
@@ -53,36 +39,38 @@ function setUpPop (jL){
 
   var popUp =  $('<div id="pop-up"></div>');
 
-  $("#pop-upt").animate({
-         height: 0,
-      }, {
-          duration: 300
-    });
   jL.parent().append(popUp);
-  $('#loader').remove();
+
+  var imageURL = chrome.extension.getURL("smallLoader.gif");
+  var loadingIMG = $('<img id="loader" src="'+imageURL+'">')
+
+       if ($('#loader').length <= 0) {
+          popUp.append(loadingIMG);
+       }
+
   $('#pop-up').css('width', $(window).width() / 2);
 
-    $('#pop-up').mouseenter(function() {
-        mouseInPopUp = true;
-      
-      }).mouseleave(function() {
-        mouseInPopUp = false;
-
-        removePopUpFromView();
-    });
+  $('#pop-up').mouseleave(function() {
+      removePopUpFromView();
+  });
 }
 
 function retrieveComments (url, jL){
-  console.log(url +'.json');
+  setUpPop(jL); 
+
   topComments = [];
   $.ajax({
         url: url +'.json',
         dataType: 'json',
         success: function(data) {
+          $('#loader').remove();
+          var exitButton = $('<a id="exit-button" href="#"">X</a>');
+          $('#pop-up').append(exitButton);
+          exitButton.click(function(){
+            removePopUpFromView();
+          });
+
           isPopUpDisplay = true;
-
-          setUpPop(jL); 
-
           currenPostID = data[0].data.children[0].data.id;
           var results = data[1].data.children;
           for (var i = 0; i <= results.length; i++) {
@@ -122,10 +110,17 @@ function formatComments(commentsArray){
       var convertedMarkdown = converter.makeHtml(c.html);
       convertedMarkdown = convertedMarkdown.replace('&gt;', '|').replace('>;', '|');
 
-      commentDiv.append($('<a id="author" href="www.reddit.com/u/'+c.author+'">' + c.author +'</a><span class="votes">'+c.votes+' points</span>'));
+      var points;
+
+      if (c.votes === 1) {
+        points = "  point";
+      }else{
+        points = "  points";
+      }
+
+      commentDiv.append($('<a id="author" href="www.reddit.com/u/'+c.author+'">' + c.author +'</a><span class="votes">'+c.votes+points+'</span>'));
       commentDiv.append($('<div class="comment-text">'+convertedMarkdown+'</div>'));
 
-      // console.log(convertedMarkdown);
       $('#pop-up').append(commentDiv);
     });
 }
@@ -137,37 +132,27 @@ function containsObject(obj, list) {
             return true;
         }
     }
-
     return false;
 }
 
 function removePopUpFromView (){
-   if(currentPostCSS.mouseenter()){
-      console.log('left popup entered upper');
-      currentPostCSS.mouseleave(animateClosing());
+   if(currentPost.mouseenter()){
+      currentPost.mouseleave(animateClosing());
     }else{
-      console.log('getting ready to close');
       animateClosing();
     }
-
 }
 
 function animateClosing(){
-     $("#pop-upt").animate({
-         height: 0,
-      }, {
-          duration: 300
-    });
-
-    $('#pop-up').fadeOut(function(){
-        topComments = [];
-        $('#pop-up').remove();
-        isPopUpDisplay = false;
-        $('#loader').remove();
-    });
+  $( "#pop-up" ).animate({
+      opacity: 0,
+      height: 0
+    }, 100, function() {
+      $('#pop-up').remove();
+  });
 }
 
-checkDocumentHeight(doSomthing);
+checkDocumentHeight(setUpURLS);
 
 function checkDocumentHeight(callback){
     var lastHeight = document.body.clientHeight, newHeight, timer;
@@ -180,8 +165,7 @@ function checkDocumentHeight(callback){
     })();
 }
 
-function doSomthing(){
-    console.log('height changed');
+function setUpURLS(){
     setUpHoverEvents();
 }
 
