@@ -1,14 +1,10 @@
 {
   "manifest_version": 2,
 
-  "name": "One-click Kittens",
-  "description": "This extension demonstrates a browser action with kittens.",
+  "name": "Reddit Comment Companion",
+  "description": "Hover over a post's comment url to see the top 10 comments for that post. Works with RES.",
   "version": "1.0",
    "web_accessible_resources": ["loadingGif.gif"],
-
-  "permissions": [
-    "https://secure.flickr.com/"
-  ],
 
   "content_scripts": [
     {
@@ -20,5 +16,9 @@
 
   "web_accessible_resources": [
     "smallLoader.gif"
-  ]
+  ],
+
+  "icons": { "16": "rccLogo16.png",
+           "48": "rccLogo48.png",
+          "128": "rccLogo128.png" }
 }

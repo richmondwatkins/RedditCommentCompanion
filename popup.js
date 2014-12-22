@@ -4,34 +4,31 @@ var topComments = [];
 var currenPostID;
 var isPopUpDisplay = false;
 var currentPost;
-
+var links;
 setUpHoverEvents();
 
 function setUpHoverEvents () {
-  var links = $('a.comments').toArray();
+  links = $('a.comments').toArray();
 
   links.forEach(function(l,i){
+    $(l).unbind();
     var jL = $(l);
+      $(jL).hover(function(e) {
+          currentPost = jL.parent().parent().parent().parent();
+          currentPost = $(currentPost);
 
-    $(jL).hover(function(e) {
-       
-        currentPost = jL.parent().parent().parent().parent();
-        currentPost = $(currentPost);
-
-        currentPost.mouseleave(function(){
-          removePopUpFromView();
-        });
-      
-        if ($('#pop-up').length <= 0) {
-
-            retrieveComments(l.href, jL); 
-
-        }else{
-          removePopUpFromView();
-        }
-    }, function(m) {
-      //mouse leave
-    });
+          currentPost.mouseleave(function(){
+            removePopUpFromView();
+          });
+        
+          if ($('#pop-up').length <= 0) {
+              retrieveComments(l.href, jL); 
+          }else{
+            removePopUpFromView();
+          }
+      }, function(m) {
+        //mouse leave
+      });
   });
 }
 
@@ -40,13 +37,12 @@ function setUpPop (jL){
   var popUp =  $('<div id="pop-up"></div>');
 
   jL.parent().append(popUp);
-
   var imageURL = chrome.extension.getURL("smallLoader.gif");
   var loadingIMG = $('<img id="loader" src="'+imageURL+'">')
 
-       if ($('#loader').length <= 0) {
-          popUp.append(loadingIMG);
-       }
+   if ($('#loader').length <= 0) {
+      popUp.append(loadingIMG);
+   }
 
   $('#pop-up').css('width', $(window).width() / 2);
 
@@ -66,8 +62,9 @@ function retrieveComments (url, jL){
           $('#loader').remove();
           var exitButton = $('<a id="exit-button" href="#"">X</a>');
           $('#pop-up').append(exitButton);
-          exitButton.click(function(){
+          exitButton.click(function(e){
             removePopUpFromView();
+            e.preventDefault();
           });
 
           isPopUpDisplay = true;
