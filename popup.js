@@ -44,7 +44,7 @@ function setUpPop (jL){
       popUp.append(loadingIMG);
    }
 
-  $('#pop-up').css('width', $(window).width() / 2);
+  $('#pop-up').css('width', $(window).width() - $(window).width() * 0.25);
 
   $('#pop-up').mouseleave(function() {
       removePopUpFromView();
@@ -117,9 +117,10 @@ function formatComments(commentsArray){
 
       commentDiv.append($('<a id="author" href="www.reddit.com/u/'+c.author+'">' + c.author +'</a><span class="votes">'+c.votes+points+'</span>'));
       commentDiv.append($('<div class="comment-text">'+convertedMarkdown+'</div>'));
-
       $('#pop-up').append(commentDiv);
     });
+
+    $('.comment-text').linkify();
 }
 
 function containsObject(obj, list) {

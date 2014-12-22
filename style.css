@@ -24,6 +24,10 @@ p {
   list-style-type: disc;
 }
 
+.comment-text > p {
+    font-size: 12px;
+}
+
 .comment-text > ul > li{
   display: list-item !important;
 }
