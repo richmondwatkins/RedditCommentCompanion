@@ -5,6 +5,8 @@ var currenPostID;
 var isPopUpDisplay = false;
 var currentPost;
 var links;
+var results;
+
 setUpHoverEvents();
 
 function setUpHoverEvents () {
@@ -57,6 +59,7 @@ function retrieveComments (url, jL){
         dataType: 'json',
         success: function(data) {
           $('#loader').remove();
+          $('.comment').remove();
           $('#pop-up').css('width', $(window).width() - $(window).width() * 0.25);
 
           var exitButton = $('<a id="exit-button" href="#"">X</a>');
@@ -69,9 +72,12 @@ function retrieveComments (url, jL){
 
           isPopUpDisplay = true;
           currenPostID = data[0].data.children[0].data.id;
+
           var postPermalink = data[0].data.children[0].data.permalink;
           var author = data[0].data.children[0].data.author;
-          var results = data[1].data.children;
+
+          results = data[1].data.children;
+
           for (var i = 0; i <= results.length; i++) {
 
             if(!results[i]){
@@ -79,8 +85,9 @@ function retrieveComments (url, jL){
             }
 
             var indivComment = results[i].data;
-
-            if (i == 10 || indivComment.link_id.indexOf(currenPostID) <= 0) {
+            
+            if (topComments.length === 10 || indivComment.link_id.indexOf(currenPostID) <= 0) {
+              console.log('BREAK')
               break;
             }else{
               var commentInfo = {
@@ -148,11 +155,13 @@ function containsObject(obj, list) {
 }
 
 function removePopUpFromView (){
-   if(currentPost.mouseenter()){
-      currentPost.mouseleave(animateClosing());
-    }else{
-      animateClosing();
-    }
+  topComments = [];
+  results = [];
+ if(currentPost.mouseenter()){
+    currentPost.mouseleave(animateClosing());
+  }else{
+    animateClosing();
+  }
 }
 
 function animateClosing(){
