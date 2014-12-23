@@ -15,9 +15,11 @@ function setUpHoverEvents () {
   links.forEach(function(l,i){
     $(l).unbind();
     var jL = $(l);
-      $(jL).hover(function(e) {
+      $(jL).hoverIntent(function(e) {
           currentPost = jL.parent().parent().parent().parent();
           currentPost = $(currentPost);
+          currenPostID = currentPost.data('fullname');
+          console.log(currenPostID);
 
           currentPost.mouseleave(function(){
             removePopUpFromView();
@@ -62,16 +64,19 @@ function retrieveComments (url, jL){
           $('.comment').remove();
           $('#pop-up').css('width', $(window).width() - $(window).width() * 0.25);
 
-          var exitButton = $('<a id="exit-button" href="#"">X</a>');
-          $('#pop-up').append(exitButton);
+          if ($('#exit-button').length <= 0) {
+            var exitButton = $('<a id="exit-button" href="#"">X</a>');
+            $('#pop-up').append(exitButton);
 
-          exitButton.click(function(e){
-            removePopUpFromView();
-            e.preventDefault();
-          });
+            exitButton.click(function(e){
+              removePopUpFromView();
+              e.preventDefault();
+            });
+          }
 
           isPopUpDisplay = true;
-          currenPostID = data[0].data.children[0].data.id;
+
+          var postResponseID = data[0].data.children[0].data.name;
 
           var postPermalink = data[0].data.children[0].data.permalink;
           var author = data[0].data.children[0].data.author;
@@ -86,7 +91,7 @@ function retrieveComments (url, jL){
 
             var indivComment = results[i].data;
             
-            if (topComments.length === 10 || indivComment.link_id.indexOf(currenPostID) <= 0) {
+            if (topComments.length === 10 || postResponseID !== currenPostID) {
               console.log('BREAK')
               break;
             }else{

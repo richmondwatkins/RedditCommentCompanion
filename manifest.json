@@ -9,7 +9,7 @@
   "content_scripts": [
     {
       "matches": ["http://www.reddit.com/*"],
-      "js": ["jquery.js", "showdown.js", "jquery.linkify.min.js", "popup.js"],
+      "js": ["jquery.js", "showdown.js", "jquery.linkify.min.js", "hoverintent.js", "popup.js"],
       "css": ["style.css"]
     }
   ],
