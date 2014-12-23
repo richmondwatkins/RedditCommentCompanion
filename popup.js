@@ -43,9 +43,6 @@ function setUpPop (jL){
    if ($('#loader').length <= 0) {
       popUp.append(loadingIMG);
    }
-
-  $('#pop-up').css('width', $(window).width() - $(window).width() * 0.25);
-
   $('#pop-up').mouseleave(function() {
       removePopUpFromView();
   });
@@ -60,8 +57,11 @@ function retrieveComments (url, jL){
         dataType: 'json',
         success: function(data) {
           $('#loader').remove();
+          $('#pop-up').css('width', $(window).width() - $(window).width() * 0.25);
+
           var exitButton = $('<a id="exit-button" href="#"">X</a>');
           $('#pop-up').append(exitButton);
+
           exitButton.click(function(e){
             removePopUpFromView();
             e.preventDefault();
@@ -69,6 +69,8 @@ function retrieveComments (url, jL){
 
           isPopUpDisplay = true;
           currenPostID = data[0].data.children[0].data.id;
+          var postPermalink = data[0].data.children[0].data.permalink;
+          var author = data[0].data.children[0].data.author;
           var results = data[1].data.children;
           for (var i = 0; i <= results.length; i++) {
 
@@ -85,8 +87,14 @@ function retrieveComments (url, jL){
                 author:  indivComment.author,
                 html: indivComment.body,
                 gilded: indivComment.gilded,
-                votes: indivComment.ups
-              };
+                votes: indivComment.ups,
+                isOP: false,
+                permalink: postPermalink + indivComment.id
+              }
+
+              if (author === indivComment.author) {
+                commentInfo.isOP = true;
+              }
 
               if (topComments.length <= 10 && containsObject(commentInfo, topComments) == false) {
                 topComments.push(commentInfo);
@@ -115,8 +123,14 @@ function formatComments(commentsArray){
         points = "  points";
       }
 
-      commentDiv.append($('<a id="author" href="www.reddit.com/u/'+c.author+'">' + c.author +'</a><span class="votes">'+c.votes+points+'</span>'));
+      if (c.isOP) {
+        commentDiv.append($('<a class="author" id="op" href="www.reddit.com/u/'+c.author+'">' + c.author +'</a><span class="votes">'+c.votes+points+'</span>'));
+      }else{
+        commentDiv.append($('<a id="author" href="www.reddit.com/u/'+c.author+'">' + c.author +'</a><span class="votes">'+c.votes+points+'</span>'));
+      }
       commentDiv.append($('<div class="comment-text">'+convertedMarkdown+'</div>'));
+      commentDiv.append($('<a class="permalink" href="'+c.permalink+'">View Thread</a>'));
+
       $('#pop-up').append(commentDiv);
     });
 

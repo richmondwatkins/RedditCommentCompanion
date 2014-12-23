@@ -6,6 +6,13 @@
   padding-right: 10px;
 }
 
+#op {
+  color: white;
+  background-color: blue;
+  padding: 2px;
+  border-radius: 3px;
+}
+
 .votes {
   color: #888;
 }
@@ -40,8 +47,10 @@ p {
   position:absolute;
   background-color: white;
   border: 2px solid black;
-  min-height: 200px;
+  min-height: 30px;
+  min-width: 30px;
   z-index: 100;
+  border-radius: 5px;
 }
 
 #exit-button {

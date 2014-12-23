@@ -3,7 +3,7 @@
 
   "name": "Reddit Comment Companion",
   "description": "Hover over a post's comment url to see the top 10 comments for that post. Works with RES.",
-  "version": "1.2",
+  "version": "1.5",
    "web_accessible_resources": ["loadingGif.gif"],
 
   "content_scripts": [
