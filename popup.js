@@ -19,7 +19,6 @@ function setUpHoverEvents () {
           currentPost = jL.parent().parent().parent().parent();
           currentPost = $(currentPost);
           currenPostID = currentPost.data('fullname');
-          console.log(currenPostID);
 
           currentPost.mouseleave(function(){
             removePopUpFromView();
@@ -90,22 +89,46 @@ function retrieveComments (url, jL){
             }
 
             var indivComment = results[i].data;
-            
+
             if (topComments.length === 10 || postResponseID !== currenPostID) {
               console.log('BREAK')
               break;
             }else{
+
+              var firstReply 
+              console.log(indivComment.replies);
+              if (indivComment.replies) {
+                firstReply = indivComment.replies.data.children[0].data;
+                firstReply = {
+                  author: firstReply.author,
+                  html : firstReply.body,
+                  gilded: firstReply.gilded,
+                  votes: firstReply.ups,
+                  isOP: false,
+                  peermalink: postPermalink + firstReply.id
+                }
+              }else{
+                firstReply = null;
+              }
+
               var commentInfo = {
                 author:  indivComment.author,
                 html: indivComment.body,
                 gilded: indivComment.gilded,
                 votes: indivComment.ups,
                 isOP: false,
-                permalink: postPermalink + indivComment.id
+                permalink: postPermalink + indivComment.id,
+                firstReply: firstReply
               }
 
               if (author === indivComment.author) {
                 commentInfo.isOP = true;
+              }
+
+              if (firstReply) {
+                if (firstReply.author === author) {
+                  firstReply.isOP = true;
+                }
               }
 
               if (topComments.length <= 10 && containsObject(commentInfo, topComments) == false) {
@@ -129,24 +152,50 @@ function formatComments(commentsArray){
 
       var points;
 
-      if (c.votes === 1) {
-        points = "  point";
-      }else{
-        points = "  points";
+      var parentComment = createComment(c, false);
+      console.log(c.firstReply);
+      if (c.firstReply) {
+        var childComment = createComment(c.firstReply, true);
+        parentComment.append(childComment);
+        console.log(childComment);
       }
+      
+      parentComment.append($('<a class="permalink" href="'+c.permalink+'">View Thread</a>'));
 
-      if (c.isOP) {
-        commentDiv.append($('<a class="author" id="op" href="www.reddit.com/u/'+c.author+'">' + c.author +'</a><span class="votes">'+c.votes+points+'</span>'));
-      }else{
-        commentDiv.append($('<a id="author" href="www.reddit.com/u/'+c.author+'">' + c.author +'</a><span class="votes">'+c.votes+points+'</span>'));
-      }
-      commentDiv.append($('<div class="comment-text">'+convertedMarkdown+'</div>')); 
-      commentDiv.append($('<a class="permalink" href="'+c.permalink+'">View Thread</a>'));
-
-      $('#pop-up').append(commentDiv);
+      $('#pop-up').append(parentComment);
     });
 
     $('.comment-text').linkify();
+}
+
+function createComment(c, isChild){
+  var converter = new Showdown.converter();
+  var commentDiv;
+
+  if (isChild) {
+    commentDiv = $('<div class="comment" id="child-comment"></div>');
+  }else{
+    commentDiv = $('<div class="comment"></div>');
+  }
+  var convertedMarkdown = converter.makeHtml(c.html);
+  convertedMarkdown = convertedMarkdown.replace('&gt;', '|').replace('>;', '|');
+
+  var points;
+
+  if (c.votes === 1) {
+    points = "  point";
+  }else{
+    points = "  points";
+  }
+
+  if (c.isOP) {
+    commentDiv.append($('<a class="author" id="op" href="www.reddit.com/u/'+c.author+'">' + c.author +'</a><span class="votes">'+c.votes+points+'</span>'));
+  }else{
+    commentDiv.append($('<a id="author" href="www.reddit.com/u/'+c.author+'">' + c.author +'</a><span class="votes">'+c.votes+points+'</span>'));
+  }
+  commentDiv.append($('<div class="comment-text">'+convertedMarkdown+'</div>')); 
+
+  return commentDiv;
 }
 
 function containsObject(obj, list) {

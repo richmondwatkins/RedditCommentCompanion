@@ -25,6 +25,9 @@ p {
 .comment {
   margin-top: 10px;
   margin-bottom: 10px;
+  border: 2px solid #888;
+  padding: 10px;
+  border-radius: 5px;
 }
 
 .comment-text > ul {
@@ -58,7 +61,7 @@ p {
   padding-left: 10px;
 }
 
-.permalink {
+/*.permalink {
   position: relative;
   top: 5px;
-}
+}*/
