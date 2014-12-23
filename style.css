@@ -51,8 +51,14 @@ p {
   min-width: 30px;
   z-index: 100;
   border-radius: 5px;
+  padding-right: 10px;
 }
 
 #exit-button {
   padding-left: 10px;
+}
+
+.permalink {
+  position: relative;
+  top: 5px;
 }

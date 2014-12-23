@@ -62,7 +62,7 @@ function retrieveComments (url, jL){
         success: function(data) {
           $('#loader').remove();
           $('.comment').remove();
-          $('#pop-up').css('width', $(window).width() - $(window).width() * 0.25);
+          $('#pop-up').css('width', $(window).width() /2);
 
           if ($('#exit-button').length <= 0) {
             var exitButton = $('<a id="exit-button" href="#"">X</a>');
@@ -140,7 +140,7 @@ function formatComments(commentsArray){
       }else{
         commentDiv.append($('<a id="author" href="www.reddit.com/u/'+c.author+'">' + c.author +'</a><span class="votes">'+c.votes+points+'</span>'));
       }
-      commentDiv.append($('<div class="comment-text">'+convertedMarkdown+'</div>'));
+      commentDiv.append($('<div class="comment-text">'+convertedMarkdown+'</div>')); 
       commentDiv.append($('<a class="permalink" href="'+c.permalink+'">View Thread</a>'));
 
       $('#pop-up').append(commentDiv);
