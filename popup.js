@@ -62,9 +62,10 @@ function retrieveComments (url, jL){
           $('#loader').remove();
           $('.comment').remove();
           $('#pop-up').css('width', $(window).width() /2);
+          $('#pop-up').css('height', $(window).height() /2);
 
-          if ($('#exit-button').length <= 0) {
-            var exitButton = $('<a id="exit-button" href="#"">X</a>');
+          if ($('.exit-button').length <= 0) {
+            var exitButton = $('<a class="exit-button" href="#"">X</a>');
             $('#pop-up').append(exitButton);
 
             exitButton.click(function(e){
@@ -91,12 +92,11 @@ function retrieveComments (url, jL){
             var indivComment = results[i].data;
 
             if (topComments.length === 10 || postResponseID !== currenPostID) {
-              console.log('BREAK')
+              // console.log('BREAK')
               break;
             }else{
 
               var firstReply 
-              console.log(indivComment.replies);
               if (indivComment.replies) {
                 firstReply = indivComment.replies.data.children[0].data;
                 firstReply = {
@@ -153,18 +153,23 @@ function formatComments(commentsArray){
       var points;
 
       var parentComment = createComment(c, false);
-      console.log(c.firstReply);
       if (c.firstReply) {
         var childComment = createComment(c.firstReply, true);
         parentComment.append(childComment);
-        console.log(childComment);
+        parentComment.append($('<a class="permalink" href="'+c.permalink+'">View Thread</a>'));
       }
-      
-      parentComment.append($('<a class="permalink" href="'+c.permalink+'">View Thread</a>'));
 
       $('#pop-up').append(parentComment);
     });
 
+    var exitButton = $('<a class="exit-button" href="#"">X</a>');
+            $('#pop-up').append(exitButton);
+
+    exitButton.click(function(e){
+      removePopUpFromView();
+      e.preventDefault();
+    });
+    
     $('.comment-text').linkify();
 }
 
@@ -176,6 +181,14 @@ function createComment(c, isChild){
     commentDiv = $('<div class="comment" id="child-comment"></div>');
   }else{
     commentDiv = $('<div class="comment"></div>');
+    var imageURL = chrome.extension.getURL("minus.png");
+    var minusImg = $('<a href="#"><img class="minus" src="'+imageURL+'"></a>');
+    minusImg.on('click', function(e){
+      collapseComment(commentDiv);
+      minusImg.unbind();
+      e.stopPropagation();
+    });
+    commentDiv.append(minusImg);
   }
   var convertedMarkdown = converter.makeHtml(c.html);
   convertedMarkdown = convertedMarkdown.replace('&gt;', '|').replace('>;', '|');
@@ -189,13 +202,67 @@ function createComment(c, isChild){
   }
 
   if (c.isOP) {
-    commentDiv.append($('<a class="author" id="op" href="www.reddit.com/u/'+c.author+'">' + c.author +'</a><span class="votes">'+c.votes+points+'</span>'));
+    commentDiv.append($('<a class="author" id="op" href="/u/'+c.author+'">' + c.author +'</a><span class="votes">'+c.votes+points+'</span>'));
   }else{
-    commentDiv.append($('<a id="author" href="www.reddit.com/u/'+c.author+'">' + c.author +'</a><span class="votes">'+c.votes+points+'</span>'));
+    commentDiv.append($('<a id="author" href="/u/'+c.author+'">' + c.author +'</a><span class="votes">'+c.votes+points+'</span>'));
   }
   commentDiv.append($('<div class="comment-text">'+convertedMarkdown+'</div>')); 
 
   return commentDiv;
+}
+
+function collapseComment(comment){
+  console.log('collapsing');
+  var minusImage = $(comment.children('a').children('img')[0]);
+  var plusURL = chrome.extension.getURL("plus.png");
+
+  var permalink = $(comment.children('.permalink'));
+  permalink.css('visibility', 'hidden');
+
+  console.log(permalink);
+  minusImage.attr('src', plusURL);
+
+  minusImage.on('click', function(e){
+    expandComment(comment);
+    minusImage.unbind();
+    e.stopPropagation();
+  })
+
+  var commentText = comment.children('div').toArray();
+  commentText.forEach(function(t, i){
+    t = $(t);
+
+     t.css('visibility', 'hidden');
+  });
+
+  comment.css('height', '10px');
+}
+
+function expandComment(comment){
+  var plusImage = $(comment.children('a').children('img')[0]);
+  plusImage.unbind();
+  aTag = $(comment.children('a')[0]);
+
+  var permalink = $(comment.children('.permalink'));
+  permalink.css('visibility', 'visible');
+  
+  var minusURL = chrome.extension.getURL("minus.png");
+   
+  var commentText = comment.children('div').toArray();
+
+  commentText.forEach(function(t, i){
+    t = $(t);
+     t.css('visibility', 'visible');
+  });
+  comment.css('height', 'auto');
+  console.log(aTag);
+  plusImage.attr('src', minusURL);
+
+  aTag.on('click',function(e){
+    e.stopPropagation();
+    console.log('clicky');
+    collapseComment(comment);
+  });
 }
 
 function containsObject(obj, list) {
@@ -209,13 +276,13 @@ function containsObject(obj, list) {
 }
 
 function removePopUpFromView (){
-  topComments = [];
-  results = [];
- if(currentPost.mouseenter()){
-    currentPost.mouseleave(animateClosing());
-  }else{
-    animateClosing();
-  }
+ //  topComments = [];
+ //  results = [];
+ // if(currentPost.mouseenter()){
+ //    currentPost.mouseleave(animateClosing());
+ //  }else{
+ //    animateClosing();
+ //  }
 }
 
 function animateClosing(){

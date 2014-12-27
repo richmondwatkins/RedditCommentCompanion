@@ -3,8 +3,7 @@
 
   "name": "Reddit Comment Companion",
   "description": "Hover over a post's comment url to see the top 10 comments for that post. Works with RES.",
-  "version": "1.7",
-   "web_accessible_resources": ["loadingGif.gif"],
+  "version": "1.83",
 
   "content_scripts": [
     {
@@ -15,10 +14,12 @@
   ],
 
   "web_accessible_resources": [
-    "smallLoader.gif"
+    "smallLoader.gif", 
+    "minus.png",
+    "plus.png"
   ],
 
-  "icons": { "16": "rccLogo16.png",
-           "48": "rccLogo48.png",
-          "128": "rccLogo128.png" }
+  "icons": { "16": "newIcon16.png",
+           "48": "newIcon48.png",
+          "128": "newIcon128.png" }
 }

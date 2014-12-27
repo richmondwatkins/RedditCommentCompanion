@@ -55,10 +55,18 @@ p {
   z-index: 100;
   border-radius: 5px;
   padding-right: 10px;
+  overflow: auto;
 }
 
-#exit-button {
-  padding-left: 10px;
+.exit-button {
+  padding-left: 10px !important;
+
+}
+
+.minus {
+  width: 15px;
+  height: 15px;
+  margin-right: 4px;
 }
 
 /*.permalink {
