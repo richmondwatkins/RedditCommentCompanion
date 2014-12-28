@@ -276,13 +276,13 @@ function containsObject(obj, list) {
 }
 
 function removePopUpFromView (){
- //  topComments = [];
- //  results = [];
- // if(currentPost.mouseenter()){
- //    currentPost.mouseleave(animateClosing());
- //  }else{
- //    animateClosing();
- //  }
+  topComments = [];
+  results = [];
+ if(currentPost.mouseenter()){
+    currentPost.mouseleave(animateClosing());
+  }else{
+    animateClosing();
+  }
 }
 
 function animateClosing(){
