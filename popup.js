@@ -62,12 +62,24 @@ function setUpPop (jL){
   var popUp =  $('<div id="pop-up"></div>');
 
   jL.parent().append(popUp);
+
+  if (isDayTheme) {
+    popUp.css('background-color', 'white');
+    popUp.css('border', '1px solid black');
+  }else{
+    popUp.css('background-color', 'rgb(22, 22, 22)');
+    popUp.css('border-color', '#e4e4e4');
+  }
+
+
+
   var imageURL = chrome.extension.getURL("smallLoader.gif");
   var loadingIMG = $('<img id="loader" src="'+imageURL+'">')
 
    if ($('#loader').length <= 0) {
       popUp.append(loadingIMG);
    }
+
   $('#pop-up').mouseleave(function() {
       removePopUpFromView();
   });
@@ -90,11 +102,12 @@ function retrieveComments (url, jL){
           popUp.css('width', $(window).width() /2);
           popUp.css('max-height', $(window).height() /2);
 
-          var settingsURL = chrome.extension.getURL("settings.png");
-          var settingsIMG = $('<div id="rcc-settings-container"><a href="#"><img id="rcc-settings-img" src="'+settingsURL+'"></a></div>')
-          popUp.append(settingsIMG);
+          //settings button
+          // var settingsURL = chrome.extension.getURL("settings.png");
+          // var settingsIMG = $('<div id="rcc-settings-container"><a href="#"><img id="rcc-settings-img" src="'+settingsURL+'"></a></div>')
+          // popUp.append(settingsIMG);
 
-          setUpSettingsDropDown(settingsIMG);
+          // setUpSettingsDropDown(settingsIMG);
 
           if ($('.exit-button').length <= 0) {
             var exitButton = $('<a class="exit-button" href="#"">X</a>');
@@ -124,12 +137,11 @@ function retrieveComments (url, jL){
             var indivComment = results[i].data;
 
             if (topComments.length === 10 || postResponseID !== currenPostID) {
-              // console.log('BREAK')
               break;
             }else{
 
               var firstReply 
-              if (indivComment.replies) {
+              if (indivComment.replies && indivComment.replies.data.children[0].data.body) {
                 firstReply = indivComment.replies.data.children[0].data;
                 firstReply = {
                   author: firstReply.author,
@@ -169,32 +181,42 @@ function retrieveComments (url, jL){
             }
           }
         formatComments(topComments);
+      },
+      error: function(request, status, error) {
+          $('#loader').remove();
+          var errorURL = chrome.extension.getURL("error.png");
+          var errorIMG = $('<img id="error" src="'+errorURL+'">')
+          var popUp = $('#pop-up');
+          popUp.append(errorIMG);
+          popUp.css('height', '50px');
+          popUp.css('width', '50px');
       }
   });
    
 }
 
 function formatComments(commentsArray){
-  var converter = new Showdown.converter();
 
     commentsArray.forEach(function(c, i){
-      var convertedMarkdown = converter.makeHtml(c.html);
-      convertedMarkdown = convertedMarkdown.replace('&gt;', '|').replace('>;', '|');
+      if (typeof c.html != 'undefined') {
+        var points;
+        var parentComment = createComment(c, false);
+        if (c.firstReply) {
+          var childComment = createComment(c.firstReply, true);
+          parentComment.append(childComment);
+          parentComment.append($('<a class="permalink" href="'+c.permalink+'">View Thread</a>'));
+        }
 
-      var points;
+        $('#pop-up').append(parentComment);
+      };
 
-      var parentComment = createComment(c, false);
-      if (c.firstReply) {
-        var childComment = createComment(c.firstReply, true);
-        parentComment.append(childComment);
-        parentComment.append($('<a class="permalink" href="'+c.permalink+'">View Thread</a>'));
-      }
-
-      $('#pop-up').append(parentComment);
     });
 
-    var exitButton = $('<a class="exit-button" href="#"">X</a>');
-            $('#pop-up').append(exitButton);
+    // if (commentsArray.length) {
+      var exitButton = $('<a class="exit-button" href="#"">X</a>');
+      $('#pop-up').append(exitButton);
+    // }
+  
 
     exitButton.click(function(e){
       removePopUpFromView();
@@ -211,14 +233,14 @@ function formatComments(commentsArray){
 }
 
 function createComment(c, isChild){
-  var converter = new Showdown.converter();
+  var converter = new Markdown.Converter();
+
   var commentDiv;
 
   if (isChild) {
     commentDiv = $('<div class="idv-comment child-comment"></div>');
   }else{
     commentDiv = $('<div class="idv-comment"></div>');
-    // var imageURL = chrome.extension.getURL("minus.png");
     var minus = $('<a href="#">[ - ]</a>');
     minus.on('click', function(e){
       e.preventDefault();
@@ -230,7 +252,13 @@ function createComment(c, isChild){
     commentDiv.append(minus);
   }
   var convertedMarkdown = converter.makeHtml(c.html);
-  convertedMarkdown = convertedMarkdown.replace('&gt;', '|').replace('>;', '|');
+  if (convertedMarkdown === null) {
+    convertedMarkdown = c.html;
+  }else{
+    convertedMarkdown = convertedMarkdown.replace('&gt;', '|').replace('>;', '|');
+    convertedMarkdown = convertedMarkdown.replace(/\^(\w+)/g, "<sup>$1</sup>");
+    convertedMarkdown = convertedMarkdown.replace(/\/r\/(\w+)/g, "<a href='http://www.reddit.com/r/$1'>/r/$1</a>");
+  }
 
   var points;
 
@@ -251,7 +279,6 @@ function createComment(c, isChild){
 }
 
 function collapseComment(comment){
-  console.log('collapsing');
   var minus = $(comment.children('a')[0]);
 
   var permalink = $(comment.children('.permalink'));
@@ -278,7 +305,6 @@ function collapseComment(comment){
 }
 
 function expandComment(comment){
-  console.log('expanding');
   var plus = $(comment.children('a')[0]);
   plus.unbind();
 
@@ -334,52 +360,46 @@ function animateClosing(){
 }
 
 function setUpSettingsDropDown(settings){
-  var settingsForm = $('<div id="rcc-radio-container"><p id="rcc-settings-title">Select Theme</p><form id="rcc-settings-form" action="">'+
-    '<input id="rcc-day" type="radio" name="theme" value="day">Day<br>'+
-    '<input id= "rcc-night" type="radio" name="theme" value="night">Night'+
-    '</form></div>');
+  // var settingsForm = $('<div id="rcc-radio-container"><p id="rcc-settings-title">Select Theme</p><form id="rcc-settings-form" action="">'+
+  //   '<input id="rcc-day" type="radio" name="theme" value="day">Day<br>'+
+  //   '<input id= "rcc-night" type="radio" name="theme" value="night">Night'+
+  //   '</form></div>');
 
-  settingsForm.css('visibility', 'hidden');
-  settings.append(settingsForm);
+  // settingsForm.css('visibility', 'hidden');
+  // settings.append(settingsForm);
 
-  $('#rcc-day').on('click', selectedDay);
-  $('#rcc-night').on('click', selectedNight);
+  // $('#rcc-day').on('click', selectedDay);
+  // $('#rcc-night').on('click', selectedNight);
 
 
-  $('#rcc-settings-img').hover(displaySettings, function(){
-      if ($('#rcc-radio-container').mouseenter()) {
-        $('#rcc-radio-container').mouseleave(function(){
-          $('#rcc-radio-container').css('visibility', 'hidden');
-        });
-      }else{
-        $('#rcc-radio-container').css('visibility', 'hidden');
-      }
-    });
+  // $('#rcc-settings-img').hover(displaySettings, function(){
+  //     if ($('#rcc-radio-container').mouseenter()) {
+  //       $('#rcc-radio-container').mouseleave(function(){
+  //         $('#rcc-radio-container').css('visibility', 'hidden');
+  //       });
+  //     }else{
+  //       $('#rcc-radio-container').css('visibility', 'hidden');
+  //     }
+  //   });
 }
 
 function selectedDay(){
-  console.log('day');
-  $('#pop-up').css('background-color', '');
   $('.child-comment').css('background-color', '');
   $('.idv-comment').css('border-color', '');
   $('#pop-up').css('border-color', '');
   $('div.comment-text > p').css('color', 'black');
-    $('div.comment-text > p > a').css('color', '#551a8b !important');
+  $('div.comment-text > p > a').css('color', '#551a8b !important');
 
   saveThemeStatus(true);
 }
 
 function selectedNight(){
-  console.log('night');
-  $('#pop-up').css('background-color', 'rgb(22, 22, 22)');
   $('.child-comment').css('background-color', 'rgb(18, 18, 18)');
   $('.idv-comment').css('border-color', 'rgb(51, 51, 51)');
   
-  $('#pop-up').css('border-color', '#e4e4e4');
   $('div.comment-text > p').css('color', 'rgb(204, 204, 204)');
   $('div.comment-text > p > a').css('color', 'rgb(51, 102, 153)');
 
-rgb(51, 102, 153)
    saveThemeStatus(false);
 }
 
@@ -390,7 +410,6 @@ function displaySettings (e){
 function saveThemeStatus (isDay){
   isDayTheme = isDay;
   chrome.storage.sync.set({'isDay': isDay}, function() {
-    console.log('Saved');
   });
 }
 

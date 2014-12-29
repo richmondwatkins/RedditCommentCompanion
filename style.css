@@ -44,6 +44,12 @@ p {
   display: list-item !important;
 }
 
+.comment-text > ol > li{
+  display: list-item !important;
+  list-style-type: decimal !important;
+  margin-left: 40px;
+}
+
 .child-comment {
   background-color: rgb(247,247,248);
 }
@@ -54,8 +60,6 @@ p {
 }
 #pop-up {
   position:absolute;
-  background-color: white;
-  border: 1px solid black;
   min-height: 30px;
   min-width: 30px;
   z-index: 100;
@@ -66,7 +70,6 @@ p {
 
 .exit-button {
   padding-left: 10px !important;
-
 }
 
 .minus {
@@ -104,6 +107,11 @@ p {
 
 #rcc-settings-title{
   text-align: center;
+}
+
+#error {
+  height: 50px;
+  width: 70px;
 }
 
 /*.permalink {
