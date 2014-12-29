@@ -44,12 +44,9 @@ function setUpHoverEvents () {
           currentPost = $(currentPost);
           currenPostID = currentPost.data('fullname');
 
+          console.log(currentPost);
           currentPost.mouseleave(function(){
-            if ($('#pop-up').mouseenter()) {
-
-            }else{
              removePopUpFromView();
-            }
           });
         
           if ($('#pop-up').length <= 0) {
