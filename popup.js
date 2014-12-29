@@ -45,7 +45,11 @@ function setUpHoverEvents () {
           currenPostID = currentPost.data('fullname');
 
           currentPost.mouseleave(function(){
-            removePopUpFromView();
+            if ($('#pop-up').mouseenter()) {
+
+            }else{
+             removePopUpFromView();
+            }
           });
         
           if ($('#pop-up').length <= 0) {
@@ -260,9 +264,9 @@ function createComment(c, isChild){
     convertedMarkdown = convertedMarkdown.replace('&gt;', '|').replace('>;', '|');
     convertedMarkdown = convertedMarkdown.replace(/\^(\w+)/g, "<sup>$1</sup>");
 
-    if (convertedMarkdown.toLowerCase().indexOf("comments") <= 0){
-      convertedMarkdown = convertedMarkdown.replace(/\/r\/(\w+)/g, "<a href='http://www.reddit.com/r/$1'>/r/$1</a>");
-    }
+    // if (convertedMarkdown.toLowerCase().indexOf("comments") <= 0){
+    //   convertedMarkdown = convertedMarkdown.replace(/\/r\/(\w+)/g, "<a href='http://www.reddit.com/r/$1'>/r/$1</a>");
+    // }
 
     convertedMarkdown = convertedMarkdown.replace(/http(\w+)/g, "<a href='$1'>$1</a>");
   }
@@ -348,13 +352,13 @@ function containsObject(obj, list) {
 }
 
 function removePopUpFromView (){
- //  topComments = [];
- //  results = [];
- // if(currentPost.mouseenter()){
- //    currentPost.mouseleave(animateClosing());
- //  }else{
- //    animateClosing();
- //  }
+  topComments = [];
+  results = [];
+ if(currentPost.mouseenter()){
+    currentPost.mouseleave(animateClosing());
+  }else{
+    animateClosing();
+  }
 }
 
 function animateClosing(){

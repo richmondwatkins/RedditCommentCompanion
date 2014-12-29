@@ -36,7 +36,7 @@ p, li {
 }
 
 .comment-text > p {
-  font-size: 12px !important;
+  font-size: small !important;
   font-family: Arial,sans-serif !important;
 }
 
