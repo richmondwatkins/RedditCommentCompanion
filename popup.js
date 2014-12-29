@@ -21,15 +21,17 @@ if ($('#nightSwitchToggle').length) {
   if ($('.toggleButton.enabled').length) {
     isDayTheme = false;
   }
-  setUpHoverEvents();
-}else{
-  chrome.storage.sync.get('isDay', function(object) {
-    if (object.isDay === false) {
-      isDayTheme = false;
-    };
-    setUpHoverEvents();
-  });
 }
+  setUpHoverEvents();
+
+// else{
+//   chrome.storage.sync.get('isDay', function(object) {
+//     if (object.isDay === false) {
+//       isDayTheme = false;
+//     };
+//     setUpHoverEvents();
+//   });
+// }
 
 function setUpHoverEvents () {
   links = $('a.comments').toArray();
@@ -257,7 +259,12 @@ function createComment(c, isChild){
   }else{
     convertedMarkdown = convertedMarkdown.replace('&gt;', '|').replace('>;', '|');
     convertedMarkdown = convertedMarkdown.replace(/\^(\w+)/g, "<sup>$1</sup>");
-    convertedMarkdown = convertedMarkdown.replace(/\/r\/(\w+)/g, "<a href='http://www.reddit.com/r/$1'>/r/$1</a>");
+
+    if (convertedMarkdown.toLowerCase().indexOf("comments") <= 0){
+      convertedMarkdown = convertedMarkdown.replace(/\/r\/(\w+)/g, "<a href='http://www.reddit.com/r/$1'>/r/$1</a>");
+    }
+
+    convertedMarkdown = convertedMarkdown.replace(/http(\w+)/g, "<a href='$1'>$1</a>");
   }
 
   var points;
