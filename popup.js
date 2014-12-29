@@ -315,13 +315,13 @@ function containsObject(obj, list) {
 }
 
 function removePopUpFromView (){
- //  topComments = [];
- //  results = [];
- // if(currentPost.mouseenter()){
- //    currentPost.mouseleave(animateClosing());
- //  }else{
- //    animateClosing();
- //  }
+  topComments = [];
+  results = [];
+ if(currentPost.mouseenter()){
+    currentPost.mouseleave(animateClosing());
+  }else{
+    animateClosing();
+  }
 }
 
 function animateClosing(){
@@ -364,7 +364,7 @@ function selectedDay(){
   $('.idv-comment').css('border-color', '');
   $('#pop-up').css('border-color', '');
   $('div.comment-text > p').css('color', 'black');
-    $('div.comment-text > p > a').css('color', '#551a8b');
+    $('div.comment-text > p > a').css('color', '#551a8b !important');
 
   saveThemeStatus(true);
 }
