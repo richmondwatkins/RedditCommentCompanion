@@ -17,9 +17,9 @@
   color: #888;
 }
 
-p {
-    word-break: normal;
-    white-space: normal;
+p, li {
+    word-break: normal !important;
+    white-space: normal !important;
 }
 
 .idv-comment {
