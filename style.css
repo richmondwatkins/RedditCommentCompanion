@@ -42,12 +42,13 @@ p, li {
 
 .comment-text > ul > li{
   display: list-item !important;
+  margin-left: 20px !important;
 }
 
 .comment-text > ol > li{
   display: list-item !important;
   list-style-type: decimal !important;
-  margin-left: 40px;
+  margin-left: 20px !important;
 }
 
 .child-comment {
@@ -62,7 +63,7 @@ p, li {
   position:absolute;
   min-height: 30px;
   min-width: 30px;
-  z-index: 100;
+  z-index: 99999999 !important;
   border-radius: 5px;
   padding-right: 10px;
   overflow: auto;

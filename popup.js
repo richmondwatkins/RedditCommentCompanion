@@ -8,30 +8,29 @@ var links;
 var results;
 var isDayTheme = true;
 var isUsingRES = false
+var currentPostTitle;
+var subredditStyleLabel;
+var shouldAnimate = false;
 
-if ($('#nightSwitchToggle').length) {
-
-  $('#nightSwitchToggle').on('click', function(){
-    if ($('.toggleButton.enabled').length) {
-      selectedNight();
-    }else{
-      selectedDay();
-    }
-  });
-  if ($('.toggleButton.enabled').length) {
-    isDayTheme = false;
-  }
-}
+  
+  checkForRes();
   setUpHoverEvents();
+  setUpScroll();
 
-// else{
-//   chrome.storage.sync.get('isDay', function(object) {
-//     if (object.isDay === false) {
-//       isDayTheme = false;
-//     };
-//     setUpHoverEvents();
-//   });
-// }
+function checkForRes(){
+  if ($('#nightSwitchToggle').length) {
+    $('#nightSwitchToggle').on('click', function(){
+      if ($('.toggleButton.enabled').length) {
+        selectedNight();
+      }else{
+        selectedDay();
+      }
+    });
+    if ($('.toggleButton.enabled').length) {
+      isDayTheme = false;
+    }
+  }    
+}
 
 function setUpHoverEvents () {
   links = $('a.comments').toArray();
@@ -42,28 +41,36 @@ function setUpHoverEvents () {
       $(jL).hoverIntent({ 
 
         over: function(e) {
+
+         if ($('#pop-up').length <= 0) {
+            retrieveComments(l.href, jL); 
+          }else if($('#pop-up').length > 0){
+            removePopUpFromView();
+            retrieveComments(l.href, jL); 
+          }
+
           currentPost = jL.parent().parent().parent().parent();
           currentPost = $(currentPost);
           currenPostID = currentPost.data('fullname');
-
-             if ($('#pop-up').length <= 0) {
-                  retrieveComments(l.href, jL); 
-              }else if($('#pop-up').length > 0){
-                removePopUpFromView();
-                retrieveComments(l.href, jL); 
-              }
+          if (isDayTheme) {
+            currentPost.css('background-color', 'rgb(247,247,248)'); 
+          }else{
+            currentPost.css('background-color', 'rgb(18, 18, 18)'); 
+          }
+          
       }, 
       out: function(){
-        console.log('out');
+
       },
-      interval: 200,
+      interval: 150,
       sensitivity: 2
     });
   });
 }
 
 function setUpPop (jL){
-
+  checkForRes();
+  setUpScroll();
   var popUp =  $('<div id="pop-up" class="trapScroll"></div>');
   popUp.css('position', '');
   popUp.css('top', '');
@@ -87,13 +94,10 @@ function setUpPop (jL){
    if ($('#loader').length <= 0) {
       popUp.append(loadingIMG);
    }
-
-  // $('#pop-up').mouseleave(function() {
-  //     removePopUpFromView();
-  // });
 }
 
 function retrieveComments (url, jL){
+  subredditStyleLabel = $($('.hover.redditname')[1]).parent().children('div')[0];
   setUpPop(jL); 
 
   topComments = [];
@@ -107,11 +111,18 @@ function retrieveComments (url, jL){
 
           var popUp = $('#pop-up');
 
-          popUp.css('width', $(window).width() / 3);
-          popUp.css('max-height', $(window).height());
           popUp.css('position', 'fixed');
-          popUp.css('top', '0px');
-          popUp.css('right', '0px');
+
+            $('#pop-up').animate({
+              height: $(window).height(),
+              width: $(window).width() / 3,
+              top: "0px",
+              right: "0px"
+
+              }, 200, function() {});
+
+          popUp.css('z-index', '21474836469999 !important');
+          $(subredditStyleLabel).remove();
 
           //settings button
           // var settingsURL = chrome.extension.getURL("settings.png");
@@ -274,6 +285,8 @@ function createComment(c, isChild){
     // }
 
     convertedMarkdown = convertedMarkdown.replace(/http(\w+)/g, "<a href='$1'>$1</a>");
+        convertedMarkdown = convertedMarkdown.replace(/s:\/\/(\w+)/g, "<a href='$1'>$1</a>");
+
   }
 
   var points;
@@ -360,24 +373,25 @@ function containsObject(obj, list) {
 function removePopUpFromView (){
   topComments = [];
   results = [];
- if(currentPost.mouseenter()){
-    currentPost.mouseleave(animateClosing());
-  }else{
-    animateClosing();
-  }
+  currentPost.css('background-color', '');
+  $(document).unbind(); 
+  animateClosing();
 }
 
 function animateClosing(){
-  // $( "#pop-up" ).animate({
-  //     opacity: 0,
-  //     height: 0
-  //   }, 1, function() {
-      var popUp = $('#pop-up');
-      popUp.css('position', '');
-      popUp.css('top', '');
-      popUp.css('right', '');
-      popUp.remove();
-  // });
+  var popUp = $('#pop-up');
+
+
+  popUp.animate({
+    height: 0,
+    width: 0,
+    opacity: 0
+  }, 200, function() {
+    popUp.remove();
+    popUp.css('position', '');
+    popUp.css('top', '');
+    popUp.css('right', '');
+  });
 }
 
 function setUpSettingsDropDown(settings){
@@ -455,80 +469,85 @@ function setUpURLS(){
 
 //======================== stops scroll in comment div
 
-var trapScroll;
+function setUpScroll(){
 
-(function($){  
-  
-  trapScroll = function(opt){
+  var trapScroll;
+
+  (function($){  
     
-    var trapElement;
-    var scrollableDist;
-    var trapClassName = 'trapScroll-enabled';
-    var trapSelector = '.trapScroll';
-    
-    var trapWheel = function(e){
+    trapScroll = function(opt){
       
-      if (!$('body').hasClass(trapClassName)) {
+      var trapElement;
+      var scrollableDist;
+      var trapClassName = 'trapScroll-enabled';
+      var trapSelector = '.trapScroll';
+      
+      var trapWheel = function(e){
         
-        return;
-        
-      } else {  
-        
-        var curScrollPos = trapElement.scrollTop();
-        var wheelEvent = e.originalEvent;
-        var dY = wheelEvent.deltaY;
+        if (!$('body').hasClass(trapClassName)) {
+          
+          return;
+          
+        } else {  
+          
+          var curScrollPos = trapElement.scrollTop();
+          var wheelEvent = e.originalEvent;
+          var dY = wheelEvent.deltaY;
 
-        // only trap events once we've scrolled to the end
-        // or beginning
-        if ((dY>0 && curScrollPos >= scrollableDist) ||
-            (dY<0 && curScrollPos <= 0)) {
+          // only trap events once we've scrolled to the end
+          // or beginning
+          if ((dY>0 && curScrollPos >= scrollableDist) ||
+              (dY<0 && curScrollPos <= 0)) {
 
-          opt.onScrollEnd();
-          return false;
+            opt.onScrollEnd();
+            return false;
+            
+          }
           
         }
         
       }
       
-    }
+      $(document)
+        .on('wheel', trapWheel)
+        .on('mouseleave', trapSelector, function(){
+          
+          $('body').removeClass(trapClassName);
+        
+        })
+        .on('mouseenter', trapSelector, function(){   
+        
+          trapElement = $(this);
+          var containerHeight = trapElement.outerHeight();
+          var contentHeight = trapElement[0].scrollHeight; // height of scrollable content
+          scrollableDist = contentHeight - containerHeight;
+          
+          if (contentHeight>containerHeight)
+            $('body').addClass(trapClassName); 
+        
+        });       
+    } 
     
-    $(document)
-      .on('wheel', trapWheel)
-      .on('mouseleave', trapSelector, function(){
-        
-        $('body').removeClass(trapClassName);
-      
-      })
-      .on('mouseenter', trapSelector, function(){   
-      
-        trapElement = $(this);
-        var containerHeight = trapElement.outerHeight();
-        var contentHeight = trapElement[0].scrollHeight; // height of scrollable content
-        scrollableDist = contentHeight - containerHeight;
-        
-        if (contentHeight>containerHeight)
-          $('body').addClass(trapClassName); 
-      
-      });       
-  } 
-  
-})($);
+  })($);
 
-var preventedCount = 0;
-var showEventPreventedMsg = function(){  
-  $('#mousewheel-prevented').stop().animate({opacity: 1}, 'fast');
-}
-var hideEventPreventedMsg = function(){
-  $('#mousewheel-prevented').stop().animate({opacity: 0}, 'fast');
-}
-var addPreventedCount = function(){
-  $('#prevented-count').html('prevented <small>x</small>' + preventedCount++);
+  var preventedCount = 0;
+  var showEventPreventedMsg = function(){  
+    $('#mousewheel-prevented').stop().animate({opacity: 1}, 'fast');
+  }
+  var hideEventPreventedMsg = function(){
+    $('#mousewheel-prevented').stop().animate({opacity: 0}, 'fast');
+  }
+  var addPreventedCount = function(){
+    $('#prevented-count').html('prevented <small>x</small>' + preventedCount++);
+  }
+
+  trapScroll({ onScrollEnd: addPreventedCount });
+  $('.trapScroll')
+    .on('mouseenter', showEventPreventedMsg)
+    .on('mouseleave', hideEventPreventedMsg);      
+  $('[id*="parent"]').scrollTop(100);
+
 }
 
-trapScroll({ onScrollEnd: addPreventedCount });
-$('.trapScroll')
-  .on('mouseenter', showEventPreventedMsg)
-  .on('mouseleave', hideEventPreventedMsg);      
-$('[id*="parent"]').scrollTop(100);
 
 })();
