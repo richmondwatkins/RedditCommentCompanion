@@ -6,8 +6,30 @@ var isPopUpDisplay = false;
 var currentPost;
 var links;
 var results;
+var isDayTheme = true;
+var isUsingRES = false
 
-setUpHoverEvents();
+if ($('#nightSwitchToggle').length) {
+
+  $('#nightSwitchToggle').on('click', function(){
+    if ($('.toggleButton.enabled').length) {
+      selectedNight();
+    }else{
+      selectedDay();
+    }
+  });
+  if ($('.toggleButton.enabled').length) {
+    isDayTheme = false;
+  }
+  setUpHoverEvents();
+}else{
+  chrome.storage.sync.get('isDay', function(object) {
+    if (object.isDay === false) {
+      isDayTheme = false;
+    };
+    setUpHoverEvents();
+  });
+}
 
 function setUpHoverEvents () {
   links = $('a.comments').toArray();
@@ -59,10 +81,20 @@ function retrieveComments (url, jL){
         url: url +'.json',
         dataType: 'json',
         success: function(data) {
+
           $('#loader').remove();
-          $('.comment').remove();
-          $('#pop-up').css('width', $(window).width() /2);
-          $('#pop-up').css('height', $(window).height() /2);
+          $('.idv-comment').remove();
+
+          var popUp = $('#pop-up');
+
+          popUp.css('width', $(window).width() /2);
+          popUp.css('max-height', $(window).height() /2);
+
+          var settingsURL = chrome.extension.getURL("settings.png");
+          var settingsIMG = $('<div id="rcc-settings-container"><a href="#"><img id="rcc-settings-img" src="'+settingsURL+'"></a></div>')
+          popUp.append(settingsIMG);
+
+          setUpSettingsDropDown(settingsIMG);
 
           if ($('.exit-button').length <= 0) {
             var exitButton = $('<a class="exit-button" href="#"">X</a>');
@@ -146,7 +178,6 @@ function formatComments(commentsArray){
   var converter = new Showdown.converter();
 
     commentsArray.forEach(function(c, i){
-      var commentDiv = $('<div class="comment"></div>');
       var convertedMarkdown = converter.makeHtml(c.html);
       convertedMarkdown = convertedMarkdown.replace('&gt;', '|').replace('>;', '|');
 
@@ -171,6 +202,12 @@ function formatComments(commentsArray){
     });
     
     $('.comment-text').linkify();
+
+    if (isDayTheme) {
+      selectedDay();
+    }else{
+      selectedNight();
+    }
 }
 
 function createComment(c, isChild){
@@ -178,17 +215,19 @@ function createComment(c, isChild){
   var commentDiv;
 
   if (isChild) {
-    commentDiv = $('<div class="comment" id="child-comment"></div>');
+    commentDiv = $('<div class="idv-comment child-comment"></div>');
   }else{
-    commentDiv = $('<div class="comment"></div>');
-    var imageURL = chrome.extension.getURL("minus.png");
-    var minusImg = $('<a href="#"><img class="minus" src="'+imageURL+'"></a>');
-    minusImg.on('click', function(e){
-      collapseComment(commentDiv);
-      minusImg.unbind();
+    commentDiv = $('<div class="idv-comment"></div>');
+    // var imageURL = chrome.extension.getURL("minus.png");
+    var minus = $('<a href="#">[ - ]</a>');
+    minus.on('click', function(e){
+      e.preventDefault();
       e.stopPropagation();
+      minus.unbind();
+
+      collapseComment(commentDiv);
     });
-    commentDiv.append(minusImg);
+    commentDiv.append(minus);
   }
   var convertedMarkdown = converter.makeHtml(c.html);
   convertedMarkdown = convertedMarkdown.replace('&gt;', '|').replace('>;', '|');
@@ -213,19 +252,19 @@ function createComment(c, isChild){
 
 function collapseComment(comment){
   console.log('collapsing');
-  var minusImage = $(comment.children('a').children('img')[0]);
-  var plusURL = chrome.extension.getURL("plus.png");
+  var minus = $(comment.children('a')[0]);
 
   var permalink = $(comment.children('.permalink'));
   permalink.css('visibility', 'hidden');
 
-  console.log(permalink);
-  minusImage.attr('src', plusURL);
+  minus.text('[ + ]');
 
-  minusImage.on('click', function(e){
-    expandComment(comment);
-    minusImage.unbind();
+  minus.on('click', function(e){
+    e.preventDefault();
     e.stopPropagation();
+    minus.unbind();
+
+    expandComment(comment);
   })
 
   var commentText = comment.children('div').toArray();
@@ -239,28 +278,28 @@ function collapseComment(comment){
 }
 
 function expandComment(comment){
-  var plusImage = $(comment.children('a').children('img')[0]);
-  plusImage.unbind();
-  aTag = $(comment.children('a')[0]);
+  console.log('expanding');
+  var plus = $(comment.children('a')[0]);
+  plus.unbind();
 
   var permalink = $(comment.children('.permalink'));
   permalink.css('visibility', 'visible');
-  
-  var minusURL = chrome.extension.getURL("minus.png");
-   
+     
   var commentText = comment.children('div').toArray();
 
   commentText.forEach(function(t, i){
     t = $(t);
      t.css('visibility', 'visible');
   });
-  comment.css('height', 'auto');
-  console.log(aTag);
-  plusImage.attr('src', minusURL);
 
-  aTag.on('click',function(e){
+  comment.css('height', 'auto');
+  plus.text('[ - ]');
+
+  plus.on('click',function(e){
     e.stopPropagation();
-    console.log('clicky');
+    e.preventDefault();
+    plus.unbind();
+
     collapseComment(comment);
   });
 }
@@ -291,6 +330,67 @@ function animateClosing(){
       height: 0
     }, 100, function() {
       $('#pop-up').remove();
+  });
+}
+
+function setUpSettingsDropDown(settings){
+  var settingsForm = $('<div id="rcc-radio-container"><p id="rcc-settings-title">Select Theme</p><form id="rcc-settings-form" action="">'+
+    '<input id="rcc-day" type="radio" name="theme" value="day">Day<br>'+
+    '<input id= "rcc-night" type="radio" name="theme" value="night">Night'+
+    '</form></div>');
+
+  settingsForm.css('visibility', 'hidden');
+  settings.append(settingsForm);
+
+  $('#rcc-day').on('click', selectedDay);
+  $('#rcc-night').on('click', selectedNight);
+
+
+  $('#rcc-settings-img').hover(displaySettings, function(){
+      if ($('#rcc-radio-container').mouseenter()) {
+        $('#rcc-radio-container').mouseleave(function(){
+          $('#rcc-radio-container').css('visibility', 'hidden');
+        });
+      }else{
+        $('#rcc-radio-container').css('visibility', 'hidden');
+      }
+    });
+}
+
+function selectedDay(){
+  console.log('day');
+  $('#pop-up').css('background-color', '');
+  $('.child-comment').css('background-color', '');
+  $('.idv-comment').css('border-color', '');
+  $('#pop-up').css('border-color', '');
+  $('div.comment-text > p').css('color', 'black');
+    $('div.comment-text > p > a').css('color', '#551a8b');
+
+  saveThemeStatus(true);
+}
+
+function selectedNight(){
+  console.log('night');
+  $('#pop-up').css('background-color', 'rgb(22, 22, 22)');
+  $('.child-comment').css('background-color', 'rgb(18, 18, 18)');
+  $('.idv-comment').css('border-color', 'rgb(51, 51, 51)');
+  
+  $('#pop-up').css('border-color', '#e4e4e4');
+  $('div.comment-text > p').css('color', 'rgb(204, 204, 204)');
+  $('div.comment-text > p > a').css('color', 'rgb(51, 102, 153)');
+
+rgb(51, 102, 153)
+   saveThemeStatus(false);
+}
+
+function displaySettings (e){
+  $('#rcc-radio-container').css('visibility', 'visible');
+}
+
+function saveThemeStatus (isDay){
+  isDayTheme = isDay;
+  chrome.storage.sync.set({'isDay': isDay}, function() {
+    console.log('Saved');
   });
 }
 
