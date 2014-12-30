@@ -115,6 +115,14 @@ p, li {
   width: 70px;
 }
 
+.close-button{
+  min-height: 30px;
+  min-width: 30px;
+  font-size: 20px;
+  color: black !important;
+  z-index: 99999999 !important;
+  border-radius: 5px;
+}
 /*.permalink {
   position: relative;
   top: 5px;

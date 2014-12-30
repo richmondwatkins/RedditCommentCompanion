@@ -11,14 +11,16 @@ var isUsingRES = false
 var currentPostTitle;
 var subredditStyleLabel;
 var shouldAnimate = false;
+var currentLink;
 
-  
   checkForRes();
   setUpHoverEvents();
   setUpScroll();
 
 function checkForRes(){
   if ($('#nightSwitchToggle').length) {
+    isUsingRES = true;
+    setUpCollapsableEvents();
     $('#nightSwitchToggle').on('click', function(){
       if ($('.toggleButton.enabled').length) {
         selectedNight();
@@ -30,6 +32,40 @@ function checkForRes(){
       isDayTheme = false;
     }
   }    
+}
+
+function setUpCollapsableEvents(){
+  var expandoButtons = $('.expando-button').toArray();
+  expandoButtons.forEach(function(e, i){
+    $(e).unbind();
+    $(e).on('click', function(){
+      console.log('click');
+      if (!$(e).hasClass('expanded')) {
+          removePopUpFromView();
+      }else{
+
+        var commentsATag = $($(e).siblings('ul.flat-list.buttons').children('li.first').children('a'));
+        var commentsURL = commentsATag.attr('href');
+        console.log(commentsURL);
+
+          if ($('#pop-up').length <= 0) {
+            retrieveComments(commentsURL, commentsATag); 
+          }else if($('#pop-up').length > 0){
+            removePopUpFromView();
+            retrieveComments(commentsURL, commentsATag); 
+          }
+
+          currentPost = commentsATag.parent().parent().parent().parent();
+          currentPost = $(currentPost);
+          currenPostID = currentPost.data('fullname');
+          if (isDayTheme) {
+            currentPost.css('background-color', 'rgb(247,247,248)'); 
+          }else{
+            currentPost.css('background-color', 'rgb(18, 18, 18)'); 
+          }
+      }
+    });
+  });
 }
 
 function setUpHoverEvents () {
@@ -78,6 +114,8 @@ function setUpPop (jL){
 
   jL.parent().append(popUp);
 
+  currentLink = jL.parent();
+
   if (isDayTheme) {
     popUp.css('background-color', 'white');
     popUp.css('border', '1px solid black');
@@ -110,7 +148,7 @@ function retrieveComments (url, jL){
           $('.idv-comment').remove();
 
           var popUp = $('#pop-up');
-
+          
           popUp.css('position', 'fixed');
 
             $('#pop-up').animate({
@@ -119,7 +157,9 @@ function retrieveComments (url, jL){
               top: "0px",
               right: "0px"
 
-              }, 200, function() {});
+              }, 200, function() {
+
+              });
 
           popUp.css('z-index', '21474836469999 !important');
           $(subredditStyleLabel).remove();
@@ -133,7 +173,16 @@ function retrieveComments (url, jL){
 
           if ($('.exit-button').length <= 0) {
             var exitButton = $('<a class="exit-button" href="#"">X</a>');
+
+            var closeButton = $('<a class="close-button" href="#"">X</a>');
             popUp.append(exitButton);
+
+            currentLink.append(closeButton);
+
+            closeButton.click(function(e){
+              removePopUpFromView();
+              e.preventDefault();
+            });
 
             exitButton.click(function(e){
               removePopUpFromView();
@@ -380,18 +429,21 @@ function removePopUpFromView (){
 
 function animateClosing(){
   var popUp = $('#pop-up');
-
-
-  popUp.animate({
-    height: 0,
-    width: 0,
-    opacity: 0
-  }, 200, function() {
-    popUp.remove();
-    popUp.css('position', '');
-    popUp.css('top', '');
-    popUp.css('right', '');
-  });
+  popUp.remove();
+  popUp.css('position', '');
+  popUp.css('top', '');
+  popUp.css('right', '');
+  $('.close-button').remove();
+  // popUp.animate({
+  //   height: 0,
+  //   width: 0,
+  //   opacity: 0
+  // }, 200, function() {
+  //   popUp.remove();
+  //   popUp.css('position', '');
+  //   popUp.css('top', '');
+  //   popUp.css('right', '');
+  // });
 }
 
 function setUpSettingsDropDown(settings){
@@ -463,6 +515,9 @@ function checkDocumentHeight(callback){
 
 function setUpURLS(){
     setUpHoverEvents();
+    if (isUsingRES) {
+      setUpCollapsableEvents();
+    }
 }
 
 
