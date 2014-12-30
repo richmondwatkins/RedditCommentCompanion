@@ -151,15 +151,25 @@ function retrieveComments (url, jL){
           
           popUp.css('position', 'fixed');
 
-            $('#pop-up').animate({
-              height: $(window).height(),
-              width: $(window).width() / 3,
-              top: "0px",
-              right: "0px"
+          popUp.css('max-height', $(window).height());
+          popUp.css('width', $(window).width() / 3);
+          popUp.css('top', '0px');
+          popUp.css('right', '0px');
 
-              }, 200, function() {
+          popUp.resizable({
+             helper: "ui-resizable-helper",
+             handles: "w"
+          });
 
-              });
+            // $('#pop-up').animate({
+            //   height: $(window).height(),
+            //   width: $(window).width() / 3,
+            //   top: "0px",
+            //   right: "0px"
+
+            //   }, 200, function() {
+
+            //   });
 
           popUp.css('z-index', '21474836469999 !important');
           $(subredditStyleLabel).remove();
@@ -333,9 +343,7 @@ function createComment(c, isChild){
     //   convertedMarkdown = convertedMarkdown.replace(/\/r\/(\w+)/g, "<a href='http://www.reddit.com/r/$1'>/r/$1</a>");
     // }
 
-    convertedMarkdown = convertedMarkdown.replace(/http(\w+)/g, "<a href='$1'>$1</a>");
-        convertedMarkdown = convertedMarkdown.replace(/s:\/\/(\w+)/g, "<a href='$1'>$1</a>");
-
+    // convertedMarkdown = convertedMarkdown.replace(/http(\w+)/g, "<a href='$1'>$1</a>");
   }
 
   var points;

@@ -56,13 +56,14 @@ p, li {
 }
 
 #loader {
-  width: 20px;
-  height: 20px;
+  width: 10px;
+  height: 10px;
+  padding-left: 5px;
 }
 #pop-up {
-  position:absolute;
-  min-height: 30px;
-  min-width: 30px;
+  display: inline;
+  min-height: 20px;
+  min-width: 20px;
   z-index: 99999999 !important;
   border-radius: 5px;
   padding-right: 10px;
@@ -70,7 +71,8 @@ p, li {
 }
 
 .exit-button {
-  padding-left: 10px !important;
+  position: fixed;
+  padding-left: 2px !important;
 }
 
 .minus {
@@ -116,14 +118,18 @@ p, li {
 }
 
 .close-button{
-  min-height: 30px;
-  min-width: 30px;
-  font-size: 20px;
+  min-height: 18px;
+  min-width: 18px;
+  background-color: #DDDDDD !important;
+  font-size: 12px !important;
   color: black !important;
-  z-index: 99999999 !important;
-  border-radius: 5px;
+  z-index: 2 !important;
+  border: 1px solid black;
+  border-radius: 2px;
+  margin-left: 4px;
 }
-/*.permalink {
-  position: relative;
-  top: 5px;
-}*/
+
+.ui-resizable-helper {
+ border: 2px dotted #00F; 
+  z-index: 999999999 !important;
+}
