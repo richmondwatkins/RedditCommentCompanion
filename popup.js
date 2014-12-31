@@ -16,6 +16,7 @@ var customWidth = 0;
 var autoOpenRES = true;
 var isSettingsVisible = false;
 var shouldShowUpdateDiv = false;
+var nightModeDiv;
 
   setUpHoverEvents();
   setUpScroll();
@@ -28,7 +29,6 @@ var shouldShowUpdateDiv = false;
 
    chrome.storage.local.get('clickSetting', function(obj) {
     if (Object.getOwnPropertyNames(obj).length > 0) {
-      console.log(obj);
       if (obj.clickSetting) {
         autoOpenRES = true;
       }else{
@@ -83,21 +83,42 @@ function checkForRes(){
     if (autoOpenRES) {
       setUpCollapsableEvents();
     }
-    
-    $('#nightSwitchToggle').on('click', function(){
-      if ($('.toggleButton.enabled').length) {
-        selectedNight();
-      }else{
-        selectedDay();
-      }
-    });
-    if ($('.toggleButton.enabled').length) {
+
+    if ($('#nightSwitchToggle').hasClass('enabled')) {
       isDayTheme = false;
     }
+
+    nightModeDiv = $($('#RESDropdownOptions').children()[3]);
+    
+    nightModeDiv.on('click', function(){
+      console.log('night click');
+      isDayTheme = !isDayTheme;
+
+      if (isDayTheme) {
+        selectedDay();
+      }else{
+        selectedNight();
+      }
+    });
+
+    // $('#nightSwitchToggle').on('click', function(){
+    //   console.log('night click');
+
+    //   isDayTheme = !isDayTheme;
+
+    //   if (isDayTheme) {
+    //     selectedDay();
+    //   }else{
+    //     selectedNight();
+    //   }
+    // });
   }    
 }
 
 function setUpCollapsableEvents(){
+  $('div#pop-up').css('visibility', 'visible');
+  $('.close-button').css('visibility', 'visible');
+
   var expandoButtons = $('.expando-button').toArray();
   expandoButtons.forEach(function(e, i){
     $(e).unbind();
@@ -173,6 +194,11 @@ function setUpHoverEvents () {
 }
 
 function setUpPop (jL){
+  nightModeDiv.unbind();
+
+  $('div#pop-up').css('visibility', 'visible');
+  $('.close-button').css('visibility', 'visible');
+
   checkForRes();
   setUpScroll();
   var popUp =  $('<div id="pop-up" class="trapScroll"></div>');
@@ -379,6 +405,19 @@ function formatComments(commentsArray){
     }else{
       selectedNight();
     }
+
+     $('#siteTable').on('click', function(e){
+        $('div#pop-up').css('visibility', 'hidden');
+        $('.close-button').css('visibility', 'hidden');
+        $('#siteTable').unbind();
+      });
+
+     $('div#pop-up').click(function(e){
+       e.stopPropagation();
+      });
+     $('div.idv-comment').click(function(e){
+       e.stopPropagation();
+      });
 }
 
 function createComment(c, isChild){
@@ -495,7 +534,7 @@ function containsObject(obj, list) {
     return false;
 }
 
-function removePopUpFromView (){
+function removePopUpFromView(){
   topComments = [];
   results = [];
   currentPost.css('background-color', '');
@@ -556,27 +595,37 @@ function setUpSettingsDropDown(settings){
   var radioContainer = $('#rcc-radio-container');
 
   settingsButton.hover(displaySettings, function(){
+      $('#siteTable').unbind();
 
       if (radioContainer.mouseenter()) {
         radioContainer.mouseleave(function(){
-          radioContainer.css('visibility', 'hidden');
-          isSettingsVisible = false;
+          hideSettings();
         });
       }else{
-        radioContainer.css('visibility', 'hidden');
-        isSettingsVisible = false;
+        hideSettings();
       }
     });
 
   settingsButton.on('click', function(e){
     e.preventDefault();
     if (isSettingsVisible) {
-      radioContainer.css('visibility', 'hidden');
-      isSettingsVisible = false;
+      hideSettings();
     }else{
       displaySettings();
     }
   });
+}
+
+function hideSettings(){
+  $('#rcc-radio-container').css('visibility', 'hidden');
+
+  $('#siteTable').on('click', function(){
+     $('div#pop-up').css('visibility', 'hidden');
+      $('.close-button').css('visibility', 'hidden');
+      removePopUpFromView();
+  });
+
+  isSettingsVisible = false;
 }
 
 function saveClickSettings(isOn){
@@ -606,6 +655,7 @@ function selectedNight(){
 }
 
 function displaySettings (e){
+  $('#siteTable').unbind();
   isSettingsVisible = true;
   $('#rcc-radio-container').css('visibility', 'visible');
 }
