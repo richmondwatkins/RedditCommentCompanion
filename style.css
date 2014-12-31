@@ -133,3 +133,21 @@ p, li {
  border: 2px solid black; 
   z-index: 999999999 !important;
 }
+
+#pop-up .ui-resizable-w {
+    width: 10px !important;
+}
+
+#rcc-update {
+  border: 2px solid black;
+  background-color: rgb(247,247,248);
+  z-index: 4 !important;
+  position:absolute; !important;
+  padding: 5px;
+}
+
+/*ul#rcc-update-list{
+  display: list-item !important;
+}
+*/
+

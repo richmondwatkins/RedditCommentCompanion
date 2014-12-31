@@ -13,26 +13,68 @@ var subredditStyleLabel;
 var shouldAnimate = false;
 var currentLink;
 var customWidth = 0;
-var autoOpenRES = false;
+var autoOpenRES = true;
 var isSettingsVisible = false;
+var shouldShowUpdateDiv = false;
 
   setUpHoverEvents();
   setUpScroll();
 
-  chrome.storage.sync.get('popUpWidth', function(obj) {
+  chrome.storage.local.get('popUpWidth', function(obj) {
     if (Object.getOwnPropertyNames(obj).length > 0) {
       customWidth = obj.popUpWidth;
     }
   });
 
-   chrome.storage.sync.get('clickSetting', function(obj) {
+   chrome.storage.local.get('clickSetting', function(obj) {
     if (Object.getOwnPropertyNames(obj).length > 0) {
+      console.log(obj);
       if (obj.clickSetting) {
         autoOpenRES = true;
-        checkForRes();
+      }else{
+         autoOpenRES = false;
       } 
+       checkForRes();
     }
   });
+
+ chrome.storage.local.get('update1', function(obj) {
+  if (Object.getOwnPropertyNames(obj).length <= 0) {
+    shouldShowUpdateDiv = true;
+  }
+});
+
+function showUpdateDiv(){
+  var upateDiv = $('<div id="rcc-update">'+
+    '<p>You have just been upgraded to v.2.1!</p><br>'+
+     '<p>'+
+        '<p style="font-weight: bold">New Features</p>'+
+        '<ul id="rcc-update-list">'+
+          '<li>- Resize width of pop-up</li><br>'+
+          '<li>- Auto open pop-up with click of RES image or video viewer (can turn off in <sup>*</sup>settings)</li><br>'+
+          '<li>- Can now close out of pop-up with "X" next to current post\'s comments link</li><br>'+
+        '</ul><br>'+
+        '<p>Submit bugs and feature requests <a href="http://www.reddit.com/r/rccChromeExt/" style="color: blue">here</a> </p><br><br>'+
+        '<p><sup>*</sup>The settings button can be found in the top right corner of each pop-up</p>'+
+      '</p>'+
+
+      '<a id="rcc-close-update" href="#" style="position:absolute; bottom:2px; left:2px; font-size: 15px; color: black;">X</a>'+
+    '</div>' );
+
+  upateDiv.css('width', $(window).width() / 3);
+  upateDiv.css('height', '200px');
+
+  currentLink.append(upateDiv);
+
+  $('a#rcc-close-update').on('click', function(e){
+    e.preventDefault();
+    $('#rcc-update').remove();
+  });
+
+  shouldShowUpdateDiv = false;
+  chrome.storage.local.set({'update1': true}, function() {});
+}
+
 
 function checkForRes(){
   if ($('#nightSwitchToggle').length) {
@@ -163,7 +205,9 @@ function setUpPop (jL){
 function retrieveComments (url, jL){
   subredditStyleLabel = $($('.hover.redditname')[1]).parent().children('div')[0];
   setUpPop(jL); 
-
+   if (shouldShowUpdateDiv) {
+          showUpdateDiv();
+    }
   topComments = [];
   $.ajax({
         url: url +'.json',
@@ -188,10 +232,10 @@ function retrieveComments (url, jL){
 
           popUp.resizable({
              helper: "ui-resizable-helper",
-             handles: "w",
+             handles: 'w',
              stop: function( event, ui ) {
               customWidth = popUp.width();
-              chrome.storage.sync.set({'popUpWidth': popUp.width()}, function() {
+              chrome.storage.local.set({'popUpWidth': popUp.width()}, function() {
               });
              }
           });
@@ -326,17 +370,6 @@ function formatComments(commentsArray){
         $('#pop-up').append(parentComment);
       };
 
-    });
-
-    // if (commentsArray.length) {
-      var exitButton = $('<a class="exit-button" href="#"">X</a>');
-      $('#pop-up').append(exitButton);
-    // }
-  
-
-    exitButton.click(function(e){
-      removePopUpFromView();
-      e.preventDefault();
     });
     
     $('.comment-text').linkify();
@@ -477,6 +510,10 @@ function animateClosing(){
   popUp.css('top', '');
   popUp.css('right', '');
   $('.close-button').remove();
+
+  if (shouldShowUpdateDiv) {
+    $('#rcc-update').remove();
+  }
   // popUp.animate({
   //   height: 0,
   //   width: 0,
@@ -519,6 +556,7 @@ function setUpSettingsDropDown(settings){
   var radioContainer = $('#rcc-radio-container');
 
   settingsButton.hover(displaySettings, function(){
+
       if (radioContainer.mouseenter()) {
         radioContainer.mouseleave(function(){
           radioContainer.css('visibility', 'hidden');
@@ -548,7 +586,7 @@ function saveClickSettings(isOn){
   }else{
     removeCollapsableEvents();
   }
-  chrome.storage.sync.set({'clickSetting': isOn}, function() {});
+  chrome.storage.local.set({'clickSetting': isOn}, function() {});
 }
 
 function selectedDay(){
