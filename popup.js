@@ -12,15 +12,36 @@ var currentPostTitle;
 var subredditStyleLabel;
 var shouldAnimate = false;
 var currentLink;
+var customWidth = 0;
+var autoOpenRES = false;
+var isSettingsVisible = false;
 
-  checkForRes();
   setUpHoverEvents();
   setUpScroll();
+
+  chrome.storage.sync.get('popUpWidth', function(obj) {
+    if (Object.getOwnPropertyNames(obj).length > 0) {
+      customWidth = obj.popUpWidth;
+    }
+  });
+
+   chrome.storage.sync.get('clickSetting', function(obj) {
+    if (Object.getOwnPropertyNames(obj).length > 0) {
+      if (obj.clickSetting) {
+        autoOpenRES = true;
+        checkForRes();
+      } 
+    }
+  });
 
 function checkForRes(){
   if ($('#nightSwitchToggle').length) {
     isUsingRES = true;
-    setUpCollapsableEvents();
+
+    if (autoOpenRES) {
+      setUpCollapsableEvents();
+    }
+    
     $('#nightSwitchToggle').on('click', function(){
       if ($('.toggleButton.enabled').length) {
         selectedNight();
@@ -39,14 +60,12 @@ function setUpCollapsableEvents(){
   expandoButtons.forEach(function(e, i){
     $(e).unbind();
     $(e).on('click', function(){
-      console.log('click');
       if (!$(e).hasClass('expanded')) {
           removePopUpFromView();
       }else{
 
         var commentsATag = $($(e).siblings('ul.flat-list.buttons').children('li.first').children('a'));
         var commentsURL = commentsATag.attr('href');
-        console.log(commentsURL);
 
           if ($('#pop-up').length <= 0) {
             retrieveComments(commentsURL, commentsATag); 
@@ -65,6 +84,13 @@ function setUpCollapsableEvents(){
           }
       }
     });
+  });
+}
+
+function removeCollapsableEvents(){
+  var expandoButtons = $('.expando-button').toArray();
+  expandoButtons.forEach(function(e, i){
+    $(e).unbind();
   });
 }
 
@@ -152,13 +178,22 @@ function retrieveComments (url, jL){
           popUp.css('position', 'fixed');
 
           popUp.css('max-height', $(window).height());
-          popUp.css('width', $(window).width() / 3);
+          if (customWidth) {
+            popUp.css('width', customWidth);
+          }else{
+            popUp.css('width', $(window).width() / 3);           
+          }
           popUp.css('top', '0px');
           popUp.css('right', '0px');
 
           popUp.resizable({
              helper: "ui-resizable-helper",
-             handles: "w"
+             handles: "w",
+             stop: function( event, ui ) {
+              customWidth = popUp.width();
+              chrome.storage.sync.set({'popUpWidth': popUp.width()}, function() {
+              });
+             }
           });
 
             // $('#pop-up').animate({
@@ -174,12 +209,12 @@ function retrieveComments (url, jL){
           popUp.css('z-index', '21474836469999 !important');
           $(subredditStyleLabel).remove();
 
-          //settings button
-          // var settingsURL = chrome.extension.getURL("settings.png");
-          // var settingsIMG = $('<div id="rcc-settings-container"><a href="#"><img id="rcc-settings-img" src="'+settingsURL+'"></a></div>')
-          // popUp.append(settingsIMG);
+          // settings button
+          var settingsURL = chrome.extension.getURL("settings.png");
+          var settingsIMG = $('<div id="rcc-settings-container"><a href="#"><img id="rcc-settings-img" src="'+settingsURL+'"></a></div>')
+          popUp.append(settingsIMG);
 
-          // setUpSettingsDropDown(settingsIMG);
+          setUpSettingsDropDown(settingsIMG);
 
           if ($('.exit-button').length <= 0) {
             var exitButton = $('<a class="exit-button" href="#"">X</a>');
@@ -455,27 +490,65 @@ function animateClosing(){
 }
 
 function setUpSettingsDropDown(settings){
-  // var settingsForm = $('<div id="rcc-radio-container"><p id="rcc-settings-title">Select Theme</p><form id="rcc-settings-form" action="">'+
-  //   '<input id="rcc-day" type="radio" name="theme" value="day">Day<br>'+
-  //   '<input id= "rcc-night" type="radio" name="theme" value="night">Night'+
-  //   '</form></div>');
-
-  // settingsForm.css('visibility', 'hidden');
-  // settings.append(settingsForm);
-
-  // $('#rcc-day').on('click', selectedDay);
-  // $('#rcc-night').on('click', selectedNight);
+  var settingsForm = $('<div id="rcc-radio-container"><p id="rcc-settings-title">Auto-open with RES</p><form id="rcc-settings-form" action="">'+
+    '<input id="rcc-on" type="radio" name="theme" value="on">On<br>'+
+    '<input id= "rcc-off" type="radio" name="theme" value="off">Off'+
+    '</form></div>');
 
 
-  // $('#rcc-settings-img').hover(displaySettings, function(){
-  //     if ($('#rcc-radio-container').mouseenter()) {
-  //       $('#rcc-radio-container').mouseleave(function(){
-  //         $('#rcc-radio-container').css('visibility', 'hidden');
-  //       });
-  //     }else{
-  //       $('#rcc-radio-container').css('visibility', 'hidden');
-  //     }
-  //   });
+  settingsForm.css('visibility', 'hidden');
+  settings.append(settingsForm);
+
+  var onRadio = $('#rcc-on');
+  var offRadio = $('#rcc-off');
+
+  if (autoOpenRES) {
+    onRadio.attr('checked', 'checked');
+  }else{
+    offRadio.attr('checked', 'checked');
+  }
+
+  onRadio.on('click', function(){
+    saveClickSettings(true);
+  });
+  offRadio.on('click', function(){
+    saveClickSettings(false);
+  });
+
+  var settingsButton = $('#rcc-settings-img');
+  var radioContainer = $('#rcc-radio-container');
+
+  settingsButton.hover(displaySettings, function(){
+      if (radioContainer.mouseenter()) {
+        radioContainer.mouseleave(function(){
+          radioContainer.css('visibility', 'hidden');
+          isSettingsVisible = false;
+        });
+      }else{
+        radioContainer.css('visibility', 'hidden');
+        isSettingsVisible = false;
+      }
+    });
+
+  settingsButton.on('click', function(e){
+    e.preventDefault();
+    if (isSettingsVisible) {
+      radioContainer.css('visibility', 'hidden');
+      isSettingsVisible = false;
+    }else{
+      displaySettings();
+    }
+  });
+}
+
+function saveClickSettings(isOn){
+  autoOpenRES = isOn;
+  if (autoOpenRES) {
+    setUpCollapsableEvents();
+  }else{
+    removeCollapsableEvents();
+  }
+  chrome.storage.sync.set({'clickSetting': isOn}, function() {});
 }
 
 function selectedDay(){
@@ -484,8 +557,6 @@ function selectedDay(){
   $('#pop-up').css('border-color', '');
   $('div.comment-text > p').css('color', 'black');
   $('div.comment-text > p > a').css('color', '#551a8b !important');
-
-  saveThemeStatus(true);
 }
 
 function selectedNight(){
@@ -494,19 +565,13 @@ function selectedNight(){
   
   $('div.comment-text > p').css('color', 'rgb(204, 204, 204)');
   $('div.comment-text > p > a').css('color', 'rgb(51, 102, 153)');
-
-   saveThemeStatus(false);
 }
 
 function displaySettings (e){
+  isSettingsVisible = true;
   $('#rcc-radio-container').css('visibility', 'visible');
 }
 
-function saveThemeStatus (isDay){
-  isDayTheme = isDay;
-  chrome.storage.sync.set({'isDay': isDay}, function() {
-  });
-}
 
 checkDocumentHeight(setUpURLS);
 
@@ -523,7 +588,7 @@ function checkDocumentHeight(callback){
 
 function setUpURLS(){
     setUpHoverEvents();
-    if (isUsingRES) {
+    if (isUsingRES && autoOpenRES) {
       setUpCollapsableEvents();
     }
 }
