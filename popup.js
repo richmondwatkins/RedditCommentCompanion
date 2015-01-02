@@ -38,7 +38,7 @@ var nightModeDiv;
     }
   });
 
- chrome.storage.local.get('update1', function(obj) {
+ chrome.storage.local.get('update2', function(obj) {
   if (Object.getOwnPropertyNames(obj).length <= 0) {
     shouldShowUpdateDiv = true;
   }
@@ -46,13 +46,14 @@ var nightModeDiv;
 
 function showUpdateDiv(){
   var upateDiv = $('<div id="rcc-update">'+
-    '<p>You have just been upgraded to v.2.1!</p><br>'+
+    '<p>You have just been upgraded to v.2.2!</p><br>'+
      '<p>'+
         '<p style="font-weight: bold">New Features</p>'+
         '<ul id="rcc-update-list">'+
           '<li>- Resize width of pop-up</li><br>'+
           '<li>- Auto open pop-up with click of RES image or video viewer (can turn off in <sup>*</sup>settings)</li><br>'+
           '<li>- Can now close out of pop-up with "X" next to current post\'s comments link</li><br>'+
+          '<li>- Click anywhere outside of the po-pup to close</li><br>'+
         '</ul><br>'+
         '<p>Submit bugs and feature requests <a href="http://www.reddit.com/r/rccChromeExt/" style="color: blue">here</a> </p><br><br>'+
         '<p><sup>*</sup>The settings button can be found in the top right corner of each pop-up</p>'+
@@ -72,7 +73,7 @@ function showUpdateDiv(){
   });
 
   shouldShowUpdateDiv = false;
-  chrome.storage.local.set({'update1': true}, function() {});
+  chrome.storage.local.set({'update2': true}, function() {});
 }
 
 
@@ -100,22 +101,11 @@ function checkForRes(){
         selectedNight();
       }
     });
-
-    // $('#nightSwitchToggle').on('click', function(){
-    //   console.log('night click');
-
-    //   isDayTheme = !isDayTheme;
-
-    //   if (isDayTheme) {
-    //     selectedDay();
-    //   }else{
-    //     selectedNight();
-    //   }
-    // });
   }    
 }
 
 function setUpCollapsableEvents(){
+  console.log('Setting up collabsable');
   $('div#pop-up').css('visibility', 'visible');
   $('.close-button').css('visibility', 'visible');
 
@@ -177,6 +167,11 @@ function setUpHoverEvents () {
           currentPost = jL.parent().parent().parent().parent();
           currentPost = $(currentPost);
           currenPostID = currentPost.data('fullname');
+
+          currentPost.mouseleave(function(){
+            removePopUpFromView();
+          });
+
           if (isDayTheme) {
             currentPost.css('background-color', 'rgb(247,247,248)'); 
           }else{
@@ -185,7 +180,7 @@ function setUpHoverEvents () {
           
       }, 
       out: function(){
-
+          removePopUpFromView();
       },
       interval: 150,
       sensitivity: 2
@@ -194,7 +189,9 @@ function setUpHoverEvents () {
 }
 
 function setUpPop (jL){
-  nightModeDiv.unbind();
+  if (nightModeDiv) {
+    nightModeDiv.unbind();
+  }
 
   $('div#pop-up').css('visibility', 'visible');
   $('.close-button').css('visibility', 'visible');
@@ -217,7 +214,6 @@ function setUpPop (jL){
     popUp.css('background-color', 'rgb(22, 22, 22)');
     popUp.css('border-color', '#e4e4e4');
   }
-
 
 
   var imageURL = chrome.extension.getURL("smallLoader.gif");
@@ -266,15 +262,6 @@ function retrieveComments (url, jL){
              }
           });
 
-            // $('#pop-up').animate({
-            //   height: $(window).height(),
-            //   width: $(window).width() / 3,
-            //   top: "0px",
-            //   right: "0px"
-
-            //   }, 200, function() {
-
-            //   });
 
           popUp.css('z-index', '21474836469999 !important');
           $(subredditStyleLabel).remove();
@@ -553,16 +540,6 @@ function animateClosing(){
   if (shouldShowUpdateDiv) {
     $('#rcc-update').remove();
   }
-  // popUp.animate({
-  //   height: 0,
-  //   width: 0,
-  //   opacity: 0
-  // }, 200, function() {
-  //   popUp.remove();
-  //   popUp.css('position', '');
-  //   popUp.css('top', '');
-  //   popUp.css('right', '');
-  // });
 }
 
 function setUpSettingsDropDown(settings){
