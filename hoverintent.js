@@ -77,10 +77,16 @@
 
         // A private function for delaying the mouseOut function
         var delay = function(ev,ob) {
+<<<<<<< HEAD
             ob.hoverIntent_t = clearTimeout(ob.hoverIntent_t);
             ob.hoverIntent_s = false;
      
             return cfg.out.apply(ob,[ev]);
+=======
+        //     ob.hoverIntent_t = clearTimeout(ob.hoverIntent_t);
+        //     ob.hoverIntent_s = false;
+        //     return cfg.out.apply(ob,[ev]);
+>>>>>>> 6dcb5a6c237786d8bef6bf300b262f4ee6c5b88b
         };
 
         // A private function for handling mouse 'hovering'
@@ -106,7 +112,11 @@
                 // unbind expensive mousemove event
                 $(ob).off("mousemove.hoverIntent",track);
                 // if hoverIntent state is true, then call the mouseOut function after the specified delay
+<<<<<<< HEAD
                 if (ob.hoverIntent_s) { ob.hoverIntent_t = setTimeout( function(){delay(ev,ob);} , cfg.timeout );}
+=======
+                // if (ob.hoverIntent_s) { ob.hoverIntent_t = setTimeout( function(){delay(ev,ob);} , cfg.timeout );}
+>>>>>>> 6dcb5a6c237786d8bef6bf300b262f4ee6c5b88b
             }
         };
 

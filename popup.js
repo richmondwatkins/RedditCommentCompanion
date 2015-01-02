@@ -521,12 +521,15 @@ function containsObject(obj, list) {
     return false;
 }
 
-function removePopUpFromView(){
+
+function removePopUpFromView (){
   topComments = [];
   results = [];
-  currentPost.css('background-color', '');
-  $(document).unbind(); 
-  animateClosing();
+ if(currentPost.mouseenter()){
+    currentPost.mouseleave(animateClosing());
+  }else{
+    animateClosing();
+  }
 }
 
 function animateClosing(){
