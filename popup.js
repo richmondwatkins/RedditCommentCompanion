@@ -17,9 +17,9 @@ var autoOpenRES = true;
 var isSettingsVisible = false;
 var shouldShowUpdateDiv = false;
 var nightModeDiv;
+var hoverOff = false;
+var hoverOffTime;
 
-  setUpHoverEvents();
-  setUpScroll();
 
   chrome.storage.local.get('popUpWidth', function(obj) {
     if (Object.getOwnPropertyNames(obj).length > 0) {
@@ -43,6 +43,18 @@ var nightModeDiv;
     shouldShowUpdateDiv = true;
   }
 });
+
+ chrome.storage.local.get('hoverOff', function(obj) {
+
+  if (Object.getOwnPropertyNames(obj).length > 0) {
+    if (obj.hoverOff) {
+      hoverOff = true;
+    }
+  }
+});
+
+setUpHoverEvents();
+setUpScroll();
 
 function showUpdateDiv(){
   var upateDiv = $('<div id="rcc-update">'+
@@ -81,7 +93,7 @@ function checkForRes(){
   if ($('#nightSwitchToggle').length) {
     isUsingRES = true;
 
-    if (autoOpenRES) {
+    if (autoOpenRES && hoverOff === false) {
       setUpCollapsableEvents();
     }
 
@@ -92,7 +104,6 @@ function checkForRes(){
     nightModeDiv = $($('#RESDropdownOptions').children()[3]);
     
     nightModeDiv.on('click', function(){
-      console.log('night click');
       isDayTheme = !isDayTheme;
 
       if (isDayTheme) {
@@ -105,7 +116,7 @@ function checkForRes(){
 }
 
 function setUpCollapsableEvents(){
-  console.log('Setting up collabsable');
+  console.log(hoverOff);
   $('div#pop-up').css('visibility', 'visible');
   $('.close-button').css('visibility', 'visible');
 
@@ -156,6 +167,7 @@ function setUpHoverEvents () {
       $(jL).hoverIntent({ 
 
         over: function(e) {
+          clearTimeout(hoverOffTime);
 
          if ($('#pop-up').length <= 0) {
             retrieveComments(l.href, jL); 
@@ -168,9 +180,11 @@ function setUpHoverEvents () {
           currentPost = $(currentPost);
           currenPostID = currentPost.data('fullname');
 
-          currentPost.mouseleave(function(){
-            removePopUpFromView();
-          });
+          // currentPost.mouseleave(function(){
+          //   if (hoverOff) {
+          //     timedHover();
+          //   }
+          // });
 
           if (isDayTheme) {
             currentPost.css('background-color', 'rgb(247,247,248)'); 
@@ -180,12 +194,29 @@ function setUpHoverEvents () {
           
       }, 
       out: function(){
-          removePopUpFromView();
+          if (hoverOff) {
+           timedHover();
+          }
       },
       interval: 150,
       sensitivity: 2
     });
   });
+}
+
+function timedHover(){
+    hoverOffTime = setTimeout(function(){
+    clearTimeout(hoverOffTime);
+              if ($('#pop-up:hover').length != 0) {
+                $('#pop-up').mouseleave(function(){
+                  if (hoverOff) {
+                    removePopUpFromView();
+                  }
+                });
+              }else{
+                 removePopUpFromView();
+              }
+            }, 1300);
 }
 
 function setUpPop (jL){
@@ -268,23 +299,24 @@ function retrieveComments (url, jL){
 
           // settings button
           var settingsURL = chrome.extension.getURL("settings.png");
-          var settingsIMG = $('<div id="rcc-settings-container"><a href="#"><img id="rcc-settings-img" src="'+settingsURL+'"></a></div>')
+          var settingsIMG = $('<div id="rcc-settings-container"><a href="#"><img id="rcc-settings-img" src="'+settingsURL+'"></a></div>');
           popUp.append(settingsIMG);
-
           setUpSettingsDropDown(settingsIMG);
 
           if ($('.exit-button').length <= 0) {
             var exitButton = $('<a class="exit-button" href="#"">X</a>');
 
-            var closeButton = $('<a class="close-button" href="#"">X</a>');
-            popUp.append(exitButton);
+            if (hoverOff == false || hoverOff == null) {
+              var closeButton = $('<a class="close-button" href="#"">X</a>');
+              popUp.append(exitButton);
 
-            currentLink.append(closeButton);
+              currentLink.append(closeButton);
 
-            closeButton.click(function(e){
-              removePopUpFromView();
-              e.preventDefault();
-            });
+              closeButton.click(function(e){
+                removePopUpFromView();
+                e.preventDefault();
+              });
+            }
 
             exitButton.click(function(e){
               removePopUpFromView();
@@ -546,10 +578,21 @@ function animateClosing(){
 }
 
 function setUpSettingsDropDown(settings){
-  var settingsForm = $('<div id="rcc-radio-container"><p id="rcc-settings-title">Auto-open with RES</p><form id="rcc-settings-form" action="">'+
+  var settingsForm = $('<div id="rcc-radio-container">'+
+
+    '<p id="rcc-settings-title">Auto-open with RES</p>'+
+    '<form id="rcc-settings-form" action="">'+
     '<input id="rcc-on" type="radio" name="theme" value="on">On<br>'+
     '<input id= "rcc-off" type="radio" name="theme" value="off">Off'+
-    '</form></div>');
+    '</form>'+
+
+    '<p id="rcc-settings-title">Close with hover-off</p>'+
+    '<form id="rcc-settings-form" action="">'+
+    '<input id="rcc-hover-on" type="radio" name="theme" value="on">On<br>'+
+    '<input id= "rcc-hover-off" type="radio" name="theme" value="off">Off'+
+    '</form>'+
+
+    '</div>');
 
 
   settingsForm.css('visibility', 'hidden');
@@ -558,11 +601,28 @@ function setUpSettingsDropDown(settings){
   var onRadio = $('#rcc-on');
   var offRadio = $('#rcc-off');
 
+  var onHover = $('#rcc-hover-on');
+  var offHover = $('#rcc-hover-off');
+
   if (autoOpenRES) {
     onRadio.attr('checked', 'checked');
   }else{
     offRadio.attr('checked', 'checked');
   }
+
+  if (hoverOff) {
+    onHover.attr('checked', 'checked');
+  }else{
+    offHover.attr('checked', 'checked');
+  }
+
+  onHover.on('click', function(){
+    saveHoverSettings(true);
+  });
+
+  offHover.on('click', function(){
+    saveHoverSettings(false);
+  });
 
   onRadio.on('click', function(){
     saveClickSettings(true);
@@ -610,12 +670,22 @@ function hideSettings(){
 
 function saveClickSettings(isOn){
   autoOpenRES = isOn;
-  if (autoOpenRES) {
+  if (autoOpenRES && hoverOff === false) {
     setUpCollapsableEvents();
   }else{
     removeCollapsableEvents();
   }
   chrome.storage.local.set({'clickSetting': isOn}, function() {});
+}
+
+function saveHoverSettings(isOn){
+  hoverOff = isOn;
+
+  if (!hoverOff) {
+    removeCollapsableEvents()
+  }
+
+  chrome.storage.local.set({'hoverOff': isOn}, function() {});
 }
 
 function selectedDay(){
@@ -656,7 +726,7 @@ function checkDocumentHeight(callback){
 
 function setUpURLS(){
     setUpHoverEvents();
-    if (isUsingRES && autoOpenRES) {
+    if (isUsingRES && autoOpenRES && hoverOff === false) {
       setUpCollapsableEvents();
     }
 }
@@ -684,9 +754,11 @@ function setUpScroll(){
           
           return;
           
-        } else {  
-          
-          var curScrollPos = trapElement.scrollTop();
+        } else {
+        var curScrollPos;  
+          if (trapElement) {
+            curScrollPos = trapElement.scrollTop();
+          }
           var wheelEvent = e.originalEvent;
           var dY = wheelEvent.deltaY;
 
