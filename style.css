@@ -36,8 +36,12 @@ p, li {
 }
 
 .comment-text > p {
-  font-size: small !important;
+  font-size: 20px !important;
   font-family: Arial,sans-serif !important;
+}
+
+.comment-text > .md {
+  font-size: 1.4em !important;
 }
 
 .comment-text > ul > li{

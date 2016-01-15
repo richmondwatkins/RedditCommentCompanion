@@ -3,18 +3,19 @@
 
   "name": "Reddit Comment Companion",
   "description": "Hover over a post's comment url to see the top 10 comments for that post. Works with RES.",
-  "version": "2.2",
+  "version": "2.2.9",
 
   "content_scripts": [
     {
       "matches": ["http://www.reddit.com/*", "https://www.reddit.com/*", "http://reddit.com/", "https://reddit.com/"],
-      "js": ["jquery.js", "jquery.linkify.min.js", "hoverintent.js", "Markdown.Converter.js", "Markdown.Editor.js", "Markdown.Sanitizer.js", "jquery-ui.min.js", "popup.js"],
+      "js": ["jquery.js", "jquery.linkify.min.js", "hoverintent.js", "Markdown.Converter.js", "jquery-ui.min.js", "popup.js"],
       "css": ["style.css", "jquery-ui.min.css"]
     }
   ],
 
   "permissions": [
-          "storage"
+          "storage",
+          "tabs"
         ],
 
   "web_accessible_resources": [
