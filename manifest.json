@@ -7,7 +7,7 @@
 
   "content_scripts": [
     {
-      "matches": ["http://www.reddit.com/*", "https://www.reddit.com/*", "http://reddit.com/", "https://reddit.com/"],
+      "matches": ["http://www.reddit.com/*", "https://www.reddit.com/*", "http://old.reddit.com/*", "https://old.reddit.com/*"],
       "js": ["jquery.js", "jquery.linkify.min.js", "hoverintent.js", "Markdown.Converter.js", "jquery-ui.min.js", "popup.js"],
       "css": ["style.css", "jquery-ui.min.css"]
     }
